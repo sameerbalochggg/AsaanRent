@@ -5,9 +5,10 @@ import 'register.dart';
 import 'forgot_password.dart';
 
 // 🔹 Import your HomePage
-import 'package:rent_application/presentation/home/screens/home_Screen.dart';
+// ✅ --- FIX: Changed file name from 'home_Screen.dart' to 'home_screen.dart' ---
+import 'package:rent_application/presentation/home/screens/home_screen.dart';
 
-// ✅ --- NEW IMPORTS ---
+// ✅ --- REPOSITORY IMPORT ---
 import 'package:rent_application/data/repositories/auth_repository.dart';
 
 class LoginPage extends StatefulWidget {
@@ -22,7 +23,6 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // ✅ --- NEW: Initialize the repository ---
   final AuthRepository _authRepository = AuthRepository();
 
   bool _obscurePassword = true;
@@ -35,7 +35,6 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  // ✅ --- REFACTORED: This function is now much cleaner ---
   Future<void> _loginUser() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -44,25 +43,22 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      // ✅ --- Call the repository instead of Supabase directly ---
       await _authRepository.signIn(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
 
-      // ✅ --- If we get here, login was successful ---
-      if (!mounted) return; // Check if the widget is still in the tree
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Login Successful!")),
       );
 
-      // ✅ Navigate to HomePage and remove LoginPage from stack
+      // ✅ This navigation is now correct
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),
       );
     } catch (e) {
-      // ✅ --- This error handling logic works perfectly ---
       String errorMessage = "Something went wrong. Please try again.";
       final errorText = e.toString().toLowerCase();
 
@@ -89,8 +85,12 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ --- Get Theme Colors ---
+    final theme = Theme.of(context);
+    
     return Scaffold(
-      backgroundColor: const Color(0xFF004D40),
+      // ✅ Use theme's primary color
+      backgroundColor: theme.primaryColor,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -108,7 +108,8 @@ class _LoginPageState extends State<LoginPage> {
                 style: GoogleFonts.poppins(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
-                  color: const Color.fromARGB(255, 209, 206, 214),
+                  // ✅ Use light color on dark background
+                  color: Colors.white.withOpacity(0.9),
                 ),
               ),
               const SizedBox(height: 8),
@@ -116,7 +117,8 @@ class _LoginPageState extends State<LoginPage> {
                 "Login to continue",
                 style: GoogleFonts.poppins(
                   fontSize: 16,
-                  color: const Color.fromARGB(255, 146, 144, 144),
+                  // ✅ Use light color on dark background
+                  color: Colors.white.withOpacity(0.7),
                 ),
               ),
               const SizedBox(height: 30),
@@ -127,6 +129,8 @@ class _LoginPageState extends State<LoginPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
+                // ✅ Use theme's card color
+                color: theme.cardColor,
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Form(
@@ -210,7 +214,8 @@ class _LoginPageState extends State<LoginPage> {
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
-                                color: const Color(0xFF004D40),
+                                // ✅ Use theme's primary color
+                                color: theme.primaryColor,
                               ),
                             ),
                           ),
@@ -228,12 +233,19 @@ class _LoginPageState extends State<LoginPage> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              backgroundColor: const Color(0xFF004D40),
+                              // ✅ Use theme's primary color
+                              backgroundColor: theme.primaryColor,
+                              foregroundColor: Colors.white, // Text on button
                             ),
                             onPressed: _isLoading ? null : _loginUser,
                             child: _isLoading
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white,
+                                ? const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.5,
+                                    ),
                                   )
                                 : Text(
                                     "Login",
@@ -256,8 +268,11 @@ class _LoginPageState extends State<LoginPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Don't have an account?",
-                      style: GoogleFonts.poppins(fontSize: 14)),
+                  Text(
+                    "Don't have an account?",
+                    // ✅ Use light color on dark background
+                    style: GoogleFonts.poppins(fontSize: 14, color: Colors.white70),
+                  ),
                   TextButton(
                     onPressed: () {
                       Navigator.push(
@@ -270,7 +285,8 @@ class _LoginPageState extends State<LoginPage> {
                       "Register",
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
-                        color: const Color.fromARGB(255, 209, 206, 214),
+                        // ✅ Use light color on dark background
+                        color: Colors.white,
                       ),
                     ),
                   ),

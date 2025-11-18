@@ -1,37 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:rent_application/data/models/property_model.dart';
 import 'package:rent_application/presentation/property/screens/property_detail_tabs_screen.dart';
 
 class MyPropertyCard extends StatelessWidget {
   final Property property;
-  final Color primaryColor;
   final Function(Property) onUpdate;
   final VoidCallback onDelete;
 
   const MyPropertyCard({
     Key? key,
     required this.property,
-    required this.primaryColor,
     required this.onUpdate,
     required this.onDelete,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.primaryColor;
+    final cardColor = theme.cardColor;
+
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: cardColor, 
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () async {
-          // Navigate to the new detail tabs screen
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => PropertyDetailTabsScreen(
+                // ✅ --- FIX: Pass the String id ---
                 propertyId: property.id, 
-                primaryColor: primaryColor,
                 onUpdate: onUpdate,
                 onDelete: onDelete,
               ),
@@ -56,7 +59,7 @@ class MyPropertyCard extends StatelessWidget {
                       children: [
                         Text(
                           property.displayName,
-                          style: TextStyle(
+                          style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: primaryColor,
@@ -65,7 +68,7 @@ class MyPropertyCard extends StatelessWidget {
                         if (property.displayLocation.isNotEmpty)
                           Text(
                             property.displayLocation,
-                            style: TextStyle(
+                            style: GoogleFonts.poppins(
                               fontSize: 14,
                               color: Colors.grey[600],
                             ),
@@ -84,7 +87,7 @@ class MyPropertyCard extends StatelessWidget {
                     ),
                     child: Text(
                       property.isRented ? 'RENTED' : 'AVAILABLE',
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         color: property.isRented
                             ? Colors.orange[900]
                             : Colors.green[900],
@@ -98,7 +101,7 @@ class MyPropertyCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 property.displayPrice,
-                style: TextStyle(
+                style: GoogleFonts.poppins(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: primaryColor,
@@ -107,8 +110,8 @@ class MyPropertyCard extends StatelessWidget {
               if (property.area != null) ...[
                 const SizedBox(height: 4),
                 Text(
-                  'Area: ${property.area} sq ft',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  'Area: ${property.area}', // ✅ Use String 'area'
+                  style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
               if (property.bedrooms != null || property.bathrooms != null) ...[
@@ -119,14 +122,14 @@ class MyPropertyCard extends StatelessWidget {
                       Icon(Icons.bed, size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text('${property.bedrooms} Bed',
-                          style: TextStyle(color: Colors.grey[600])),
+                          style: GoogleFonts.poppins(color: Colors.grey[600])),
                       const SizedBox(width: 16),
                     ],
                     if (property.bathrooms != null) ...[
                       Icon(Icons.bathtub, size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text('${property.bathrooms} Bath',
-                          style: TextStyle(color: Colors.grey[600])),
+                          style: GoogleFonts.poppins(color: Colors.grey[600])),
                     ],
                   ],
                 ),
@@ -138,7 +141,7 @@ class MyPropertyCard extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     'Tap to view details',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       color: primaryColor,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,

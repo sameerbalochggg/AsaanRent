@@ -5,9 +5,6 @@ class AuthRepository {
   final _supabase = Supabase.instance.client;
 
   /// Signs in a user with email and password.
-  ///
-  /// Throws a [AuthException] if login fails.
-  /// Returns the [User] object on success.
   Future<User> signIn(String email, String password) async {
     try {
       final response = await _supabase.auth.signInWithPassword(
@@ -19,7 +16,36 @@ class AuthRepository {
       }
       return response.user!;
     } catch (e) {
-      // Re-throw the original exception to be handled by the UI
+      rethrow;
+    }
+  }
+
+  /// Registers a new user with email, password, and username.
+  Future<User> signUp({
+    required String email,
+    required String password,
+    required String username,
+  }) async {
+    try {
+      final response = await _supabase.auth.signUp(
+        email: email,
+        password: password,
+        emailRedirectTo: 'rentapp://login-callback',
+        data: {
+          'username': username, 
+        },
+      );
+      
+      if (response.user == null) {
+        throw Exception("Sign up failed, user data not returned.");
+      }
+      
+      if (response.user?.identities?.isEmpty ?? true) {
+         throw Exception("This email is already registered. Please login.");
+      }
+      
+      return response.user!;
+    } catch (e) {
       rethrow;
     }
   }
@@ -30,14 +56,53 @@ class AuthRepository {
       await _supabase.auth.signOut();
     } catch (e) {
       debugPrint("Error signing out: $e");
-      // Re-throw to let the UI show an error if needed
+      rethrow;
+    }
+  }
+  
+  /// Gets the currently signed-in user, if one exists.
+  User? getCurrentUser() {
+    return _supabase.auth.currentUser;
+  }
+
+  /// Send Password Reset OTP to the user's email
+  Future<void> sendPasswordResetOtp(String email) async {
+    try {
+      await _supabase.auth.signInWithOtp(
+        email: email,
+        emailRedirectTo: "rentapp://reset-callback/",
+      );
+    } catch (e) {
       rethrow;
     }
   }
 
-  // ✅ --- NEW FUNCTION ADDED ---
-  /// Gets the currently signed-in user, if one exists.
-  User? getCurrentUser() {
-    return _supabase.auth.currentUser;
+  /// Verifies the OTP and signs the user in
+  Future<User> verifyPasswordResetOtp(String email, String otp) async {
+    try {
+      final response = await _supabase.auth.verifyOTP(
+        type: OtpType.email,
+        token: otp,
+        email: email,
+      );
+      if (response.user == null) {
+        throw Exception("OTP verification failed.");
+      }
+      return response.user!;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // ✅ --- THIS IS THE NEWLY ADDED FUNCTION ---
+  /// Updates the user's password after they have been authenticated (e.g., via OTP)
+  Future<void> updateUserPassword(String newPassword) async {
+    try {
+      await _supabase.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+    } catch(e) {
+      rethrow;
+    }
   }
 }

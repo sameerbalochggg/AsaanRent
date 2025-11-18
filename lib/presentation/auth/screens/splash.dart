@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:rent_application/core/images.dart';
 import 'package:rent_application/presentation/auth/screens/login.dart';
-import 'package:rent_application/presentation/home/screens/home_Screen.dart'; // ✅ Import your HomePage
+import 'package:rent_application/presentation/home/screens/home_screen.dart'; // ✅ Import your HomePage
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SplashScreen extends StatefulWidget {

@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rent_application/core/colors.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; // Still needed for AuthException
 import 'package:rent_application/core/images.dart';
 import 'reset_password.dart';
+
+// ✅ --- REFACTORED IMPORTS ---
+import 'package:rent_application/data/repositories/auth_repository.dart';
+// ❌ --- REMOVED unused core/colors.dart ---
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -18,13 +21,23 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
 
+  // ✅ --- Use Repository ---
+  final AuthRepository _authRepository = AuthRepository();
+
   bool _loading = false;
   bool _otpSent = false;
 
   int _secondsRemaining = 0;
   Timer? _timer;
 
-  /// ✅ OTP button now has a 90s countdown timer.
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _emailController.dispose();
+    _otpController.dispose();
+    super.dispose();
+  }
+
   void _startOtpTimer() {
     setState(() => _secondsRemaining = 90);
 
@@ -39,7 +52,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     });
   }
 
-  /// Send OTP to user email via Supabase
+  /// ✅ --- REFACTORED: Uses AuthRepository ---
   Future<void> _sendOtp() async {
     if (_emailController.text.isEmpty || !_emailController.text.contains("@")) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -51,12 +64,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     setState(() => _loading = true);
     try {
       final email = _emailController.text.trim();
-
-      // ✅ Send OTP to email
-      await Supabase.instance.client.auth.signInWithOtp(
-        email: email,
-        emailRedirectTo: "rentapp://reset-callback/", // your deep link
-      );
+      
+      // ✅ Call Repository
+      await _authRepository.sendPasswordResetOtp(email);
 
       setState(() => _otpSent = true);
 
@@ -65,7 +75,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         const SnackBar(content: Text("OTP sent to your email.")),
       );
 
-      _startOtpTimer(); // start 90s countdown
+      _startOtpTimer();
     } on AuthException catch (error) {
       String errorMessage = "Something went wrong. Please try again.";
       final err = error.message.toLowerCase();
@@ -88,7 +98,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     }
   }
 
-  /// Verify OTP entered by user
+  /// ✅ --- REFACTORED: Uses AuthRepository ---
   Future<void> _verifyOtp() async {
     if (_otpController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -102,27 +112,21 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       final email = _emailController.text.trim();
       final otp = _otpController.text.trim();
 
-      // ✅ Verify OTP
-      final response = await Supabase.instance.client.auth.verifyOTP(
-        type: OtpType.email,
-        token: otp,
-        email: email,
+      // ✅ Call Repository
+      await _authRepository.verifyPasswordResetOtp(email, otp);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("OTP verified successfully!")),
       );
 
-      if (response.user != null) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("OTP verified successfully!")),
-        );
-
-        // 👉 Navigate to Reset Password Page (with email passed)
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ResetPasswordPage(email: email),
-          ),
-        );
-      }
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ResetPasswordPage(email: email),
+        ),
+      );
+      
     } on AuthException catch (error) {
       String errorMessage = "Something went wrong. Please try again.";
       final err = error.message.toLowerCase();
@@ -145,24 +149,19 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     }
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _emailController.dispose();
-    _otpController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
+    // ✅ --- Get Theme Colors ---
+    final theme = Theme.of(context);
+    
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: theme.scaffoldBackgroundColor, // ✅ Theme-aware
       appBar: AppBar(
         title: const Text(
           "Forgot Password",
-          style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: Color(0xFF004D40),
+        // ✅ Theme-aware (colors are inherited from main.dart)
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -181,7 +180,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: 14,
-                  color: Colors.grey[600],
+                  color: theme.textTheme.bodySmall?.color, // ✅ Theme-aware
                 ),
               ),
               const SizedBox(height: 30),
@@ -191,6 +190,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
+                color: theme.cardColor, // ✅ Theme-aware
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Form(
@@ -239,8 +239,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                     ),
                                   )
                                 : IconButton(
-                                    icon: const Icon(Icons.send,
-                                        color: Color(0xFF004D40)),
+                                    icon: Icon(Icons.send,
+                                        color: theme.primaryColor), // ✅ Theme-aware
                                     onPressed: _loading ? null : _sendOtp,
                                   ),
                           ],
@@ -276,11 +276,15 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                backgroundColor: verifyOTPColor,
+                                backgroundColor: theme.primaryColor, // ✅ Theme-aware
                               ),
                               onPressed: _loading ? null : _verifyOtp,
                               child: _loading
-                                  ? const CircularProgressIndicator(color: Colors.white)
+                                  ? const SizedBox(
+                                      height: 24,
+                                      width: 24,
+                                      child: CircularProgressIndicator(color: Colors.white),
+                                    )
                                   : Text(
                                       "Verify OTP",
                                       style: GoogleFonts.poppins(

@@ -5,7 +5,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 final _supabase = Supabase.instance.client;
 
 class PropertyRepository {
-  /// Fetches all *available* properties for the HomePage.
   Future<List<Property>> fetchAllAvailableProperties() async {
     try {
       final response =
@@ -17,7 +16,6 @@ class PropertyRepository {
     }
   }
 
-  /// Fetches *all* properties (available and rented) for the SearchPage.
   Future<List<Property>> getAllPropertiesForSearch() async {
     try {
       final response = await _supabase.from('properties').select();
@@ -28,7 +26,23 @@ class PropertyRepository {
     }
   }
 
-  /// Fetches all properties for a specific user.
+  // ✅ --- FIX: Now accepts List<String> (UUIDs) ---
+  Future<List<Property>> getPropertiesByIds(List<String> ids) async {
+    if (ids.isEmpty) {
+      return [];
+    }
+    try {
+      final response = await _supabase
+          .from('properties')
+          .select()
+          .inFilter('id', ids); 
+      return (response as List).map((json) => Property.fromJson(json)).toList();
+    } catch (e) {
+      debugPrint("Error in getPropertiesByIds: $e");
+      rethrow;
+    }
+  }
+
   Future<List<Property>> fetchUserProperties() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
@@ -46,21 +60,21 @@ class PropertyRepository {
     }
   }
 
-  /// Fetches a single property by its ID.
+  // ✅ --- FIX: Now accepts String propertyId (UUID) ---
   Future<Property> fetchPropertyById(String propertyId) async {
     try {
       final response = await _supabase
           .from('properties')
           .select('*')
-          .eq('id', propertyId)
+          .eq('id', propertyId) // Use the String ID
           .single();
       return Property.fromJson(response);
     } catch (e) {
+      debugPrint('Error fetching property by ID: $e');
       throw Exception('Failed to fetch property details: $e');
     }
   }
-  
-  /// Adds a new property to the database.
+
   Future<void> addProperty(Map<String, dynamic> propertyData) async {
     try {
       await _supabase.from('properties').insert(propertyData);
@@ -70,19 +84,18 @@ class PropertyRepository {
     }
   }
 
-  /// Updates an existing property.
   Future<void> updateProperty(Property property) async {
     try {
       await _supabase
           .from('properties')
           .update(property.toJson())
-          .eq('id', property.id);
+          .eq('id', property.id); // Use String id
     } catch (e) {
       throw Exception('Failed to update property: $e');
     }
   }
 
-  /// Toggles the rental status of a property.
+  // ✅ --- FIX: Now accepts String propertyId (UUID) ---
   Future<void> toggleRentalStatus(String propertyId, bool isRented) async {
     try {
       await _supabase
@@ -97,7 +110,7 @@ class PropertyRepository {
     }
   }
 
-  /// Deletes a property by its ID.
+  // ✅ --- FIX: Now accepts String propertyId (UUID) ---
   Future<void> deleteProperty(String propertyId) async {
     try {
       await _supabase.from('properties').delete().eq('id', propertyId);

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class UserProfile {
-  final int id; // The primary key (bigint)
-  final String userId; // The foreign key (uuid)
+  final int id; // This is the bigint Primary Key
+  final String userId; // This is the uuid Foreign Key to auth.users
   
   final String? username;
   final String? profession;
@@ -11,9 +11,9 @@ class UserProfile {
   final String? bio;
   final String? language;
   final String? avatarUrl;
-  final String? email; // ✅ --- ADDED EMAIL ---
   final DateTime? updatedAt;
   final DateTime? createdAt;
+  final List<String>? favorites; // List of UUIDs (Strings)
 
   UserProfile({
     required this.id,
@@ -25,9 +25,9 @@ class UserProfile {
     this.bio,
     this.language,
     this.avatarUrl,
-    this.email, // ✅ --- ADDED EMAIL ---
     this.updatedAt,
     this.createdAt,
+    this.favorites,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -42,13 +42,15 @@ class UserProfile {
         bio: json['bio'] as String?,
         language: json['language'] as String?,
         avatarUrl: json['avatar_url'] as String?,
-        email: json['email'] as String?, // ✅ --- ADDED EMAIL ---
         updatedAt: json['updated_at'] != null
             ? DateTime.parse(json['updated_at'] as String)
             : null,
         createdAt: json['created_at'] != null
             ? DateTime.parse(json['created_at'] as String)
             : null,
+        favorites: json['favorites'] != null
+            ? List<String>.from(json['favorites'].map((id) => id.toString()))
+            : [],
       );
     } catch (e) {
       debugPrint("Error parsing UserProfile: $e");
@@ -57,7 +59,6 @@ class UserProfile {
     }
   }
 
-  // toJson is used when UPDATING the profile
   Map<String, dynamic> toJson() {
     return {
       'username': username,
@@ -67,11 +68,11 @@ class UserProfile {
       'bio': bio,
       'language': language,
       'avatar_url': avatarUrl,
-      'email': email, // ✅ --- ADDED EMAIL ---
+      'favorites': favorites,
     };
   }
 
-  // copyWith method for the Edit screen
+  // ✅ --- ADDED copyWith method ---
   UserProfile copyWith({
     int? id,
     String? userId,
@@ -82,9 +83,9 @@ class UserProfile {
     String? bio,
     String? language,
     String? avatarUrl,
-    String? email, // ✅ --- ADDED EMAIL ---
     DateTime? updatedAt,
     DateTime? createdAt,
+    List<String>? favorites,
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -96,9 +97,9 @@ class UserProfile {
       bio: bio ?? this.bio,
       language: language ?? this.language,
       avatarUrl: avatarUrl ?? this.avatarUrl,
-      email: email ?? this.email, // ✅ --- ADDED EMAIL ---
       updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
+      favorites: favorites ?? this.favorites,
     );
   }
 }

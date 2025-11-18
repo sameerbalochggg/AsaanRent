@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rent_application/presentation/auth/screens/forgot_password.dart'; // ✅ Import your Reset Password Page
+import 'package:provider/provider.dart'; 
+import 'package:rent_application/presentation/providers/theme_provider.dart'; 
+import 'package:rent_application/core/theme.dart'; 
 
-// --- App Color Scheme ---
-const kPrimaryColor = Color(0xFF004D40);
-const kScaffoldBgColor = Color(0xFFF8F9FA); // Light grey background
-const kDestructiveColor = Colors.red;
+// ❌ --- REMOVED OLD COLOR CONSTANTS ---
+// const kPrimaryColor = Color(0xFF004D40);
+// const kScaffoldBgColor = Color(0xFFF8F9FA);
+// const kDestructiveColor = Colors.red;
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -15,14 +17,15 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  // State variables for toggles
   bool _notificationsOn = true;
-  bool _darkModeOn = false;
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+
     return Scaffold(
-      backgroundColor: _darkModeOn ? Colors.black : kScaffoldBgColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           "Settings",
@@ -31,7 +34,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: kPrimaryColor,
+        backgroundColor: kPrimaryColor, // This comes from theme.dart
         foregroundColor: Colors.white,
         elevation: 1,
       ),
@@ -45,10 +48,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: "Change Password",
             subtitle: "Update your login password",
             onTap: () {
-              // ✅ Navigate to Reset Password Page
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Navigate to Change Password Screen')),
               );
             },
           ),
@@ -57,9 +58,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.delete_outline,
             title: "Delete Account",
             subtitle: "Permanently delete your account",
-            isDestructive: true,
+            isDestructive: true, 
             onTap: () {
-              // TODO: Show confirmation dialog
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Show Delete Account Dialog')),
               );
@@ -77,17 +77,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               setState(() {
                 _notificationsOn = newValue;
               });
+              // TODO: Save this preference to the device
             },
           ),
           _buildSwitchItem(
             icon: Icons.dark_mode_outlined,
             title: "Dark Mode",
             subtitle: "Enable dark theme",
-            value: _darkModeOn,
+            value: isDarkMode,
             onChanged: (newValue) {
-              setState(() {
-                _darkModeOn = newValue;
-              });
+              context.read<ThemeProvider>().toggleTheme(newValue);
             },
           ),
         ],
@@ -95,7 +94,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // --- Section Header Widget ---
+  // Helper widget for section headers (e.g., "Account")
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
@@ -111,7 +110,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // --- Setting Item (e.g., Change Password) ---
+  // Helper widget for standard settings items (like "Change Password")
   Widget _buildSettingItem(
     BuildContext context, {
     required IconData icon,
@@ -120,11 +119,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required VoidCallback onTap,
     bool isDestructive = false,
   }) {
-    final color = isDestructive ? kDestructiveColor : (_darkModeOn ? Colors.white : Colors.black87);
-    final iconColor = isDestructive ? kDestructiveColor : (_darkModeOn ? Colors.white70 : Colors.grey[700]);
+    // ✅ --- This now correctly reads kDestructiveColor from theme.dart ---
+    final color = isDestructive ? kDestructiveColor : Theme.of(context).textTheme.bodyLarge?.color;
+    final iconColor = isDestructive ? kDestructiveColor : Colors.grey[700];
 
     return Container(
-      color: _darkModeOn ? Colors.grey[900] : Colors.white,
+      color: Theme.of(context).cardColor,
       child: ListTile(
         leading: Icon(icon, color: iconColor),
         title: Text(
@@ -137,7 +137,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         subtitle: Text(
           subtitle,
-          style: GoogleFonts.poppins(color: _darkModeOn ? Colors.grey[400] : Colors.grey[600]),
+          style: GoogleFonts.poppins(color: Colors.grey[600]),
         ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
         onTap: onTap,
@@ -145,7 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // --- Switch Item (e.g., Dark Mode, Notifications) ---
+  // Helper widget for settings items with a toggle switch
   Widget _buildSwitchItem({
     required IconData icon,
     required String title,
@@ -154,20 +154,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required ValueChanged<bool> onChanged,
   }) {
     return Container(
-      color: _darkModeOn ? Colors.grey[900] : Colors.white,
+      color: Theme.of(context).cardColor,
       child: ListTile(
-        leading: Icon(icon, color: _darkModeOn ? Colors.white70 : Colors.grey[700]),
+        leading: Icon(icon, color: Colors.grey[700]),
         title: Text(
           title,
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w500,
             fontSize: 16,
-            color: _darkModeOn ? Colors.white : Colors.black,
           ),
         ),
         subtitle: Text(
           subtitle,
-          style: GoogleFonts.poppins(color: _darkModeOn ? Colors.grey[400] : Colors.grey[600]),
+          style: GoogleFonts.poppins(color: Colors.grey[600]),
         ),
         trailing: Switch(
           value: value,

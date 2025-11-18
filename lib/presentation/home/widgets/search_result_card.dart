@@ -12,10 +12,15 @@ class SearchResultCard extends StatelessWidget {
     required this.onTap,
   });
 
-  static const Color primaryColor = Color(0xFF004D40);
-
   @override
   Widget build(BuildContext context) {
+    // ✅ --- Get theme-aware colors ---
+    final theme = Theme.of(context);
+    final primaryColor = theme.primaryColor;
+    final cardColor = theme.cardColor;
+    final textColor = theme.textTheme.bodyLarge?.color;
+    final subtitleColor = theme.textTheme.bodySmall?.color;
+
     final imageUrl = (property.images != null && property.images!.isNotEmpty)
         ? property.images![0]
         : null;
@@ -23,19 +28,19 @@ class SearchResultCard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Card(
-        color: Colors.white, // Card background
+        color: cardColor, // Use theme card color
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
         margin: const EdgeInsets.symmetric(vertical: 8),
         elevation: 3,
-        shadowColor: Colors.grey.withOpacity(0.2),
+        shadowColor: Colors.black.withOpacity(0.1),
         child: ListTile(
           contentPadding: const EdgeInsets.all(10),
           leading: ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.network(
-              imageUrl ?? 'https://via.placeholder.com/150', // Placeholder
+              imageUrl ?? 'https://placehold.co/150x150/grey/white?text=No+Image',
               width: 70,
               height: 70,
               fit: BoxFit.cover,
@@ -43,11 +48,11 @@ class SearchResultCard extends StatelessWidget {
                 return Container(
                   width: 70,
                   height: 70,
-                  color: Colors.grey[200],
-                  child: const Icon(
+                  color: theme.dividerColor.withOpacity(0.1),
+                  child: Icon(
                     Icons.broken_image,
                     size: 40,
-                    color: Colors.grey,
+                    color: Colors.grey[400],
                   ),
                 );
               },
@@ -57,7 +62,7 @@ class SearchResultCard extends StatelessWidget {
             property.displayName,
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: textColor, // Use theme text color
             ),
           ),
           subtitle: Column(
@@ -68,23 +73,23 @@ class SearchResultCard extends StatelessWidget {
                 property.displayLocation,
                 style: GoogleFonts.poppins(
                   fontSize: 13,
-                  color: Colors.black54,
+                  color: subtitleColor, // Use theme subtitle color
                 ),
               ),
               const SizedBox(height: 4),
               Text(
-                'Rs ${property.price ?? 0}',
+                property.displayPrice,
                 style: GoogleFonts.poppins(
                   fontSize: 14,
-                  color: primaryColor,
+                  color: primaryColor, // Use theme primary color
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ],
           ),
-          trailing: const Icon(
+          trailing: Icon(
             Icons.home_work_outlined,
-            color: primaryColor,
+            color: primaryColor, // Use theme primary color
             size: 28,
           ),
         ),

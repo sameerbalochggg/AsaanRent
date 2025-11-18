@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-// ✅ --- REFACTORED IMPORTS ---
 import 'package:rent_application/data/models/property_model.dart';
 import 'package:rent_application/data/repositories/property_repository.dart';
 import 'package:rent_application/presentation/property/screens/property_details_screen.dart';
 import 'package:rent_application/presentation/home/widgets/search_result_card.dart';
-// ❌ --- REMOVED SUPABASE IMPORT ---
-
+import 'package:rent_application/presentation/home/screens/home_screen.dart';
+import 'package:rent_application/presentation/home/screens/favourite_tab_screen.dart';
+import 'package:rent_application/presentation/profile/screens/profile_screen.dart';
+import 'package:rent_application/presentation/widgets/custom_bottom_nav_bar.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -17,20 +17,11 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  static const Color primaryColor = Color(0xFF004D40);
-  static const Color scaffoldBgColor = Color(0xFFF8F9FA);
-  static const Color fieldBgColor = Colors.white;
-  final Color borderColor = Colors.grey[350]!;
-  final Color labelColor = Colors.grey[700]!;
-
-  // ✅ --- USE REPOSITORY ---
   final PropertyRepository _propertyRepository = PropertyRepository();
 
-  // ✅ --- USE PROPERTY MODEL ---
   List<Property> _properties = [];
   List<Property> _filteredProperties = [];
 
-  // Filters
   String _searchText = '';
   String? _selectedType;
   String? _selectedLocation;
@@ -41,6 +32,8 @@ class _SearchPageState extends State<SearchPage> {
 
   final List<String> _propertyTypes = ['All', 'House', 'Flat', 'Shop', 'Office'];
   final List<String> _locations = ['All', 'Turbat', 'Gwadar', 'Quetta'];
+
+  final int _selectedIndex = 1;
 
   @override
   void initState() {
@@ -56,15 +49,49 @@ class _SearchPageState extends State<SearchPage> {
     _endPriceController.dispose();
     super.dispose();
   }
+  
+  // ✅ FIXED: Complete navigation logic with Home, Search, Favorites, and Profile
+  void _onItemTapped(int index) {
+    // If already on the current page, do nothing
+    if (index == _selectedIndex) {
+      return;
+    }
 
-  /// ✅ Fetches all properties from REPOSITORY
+    // Navigate based on the tapped index
+    switch (index) {
+      case 0: // Home
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+        break;
+        
+      case 1: // Search (current page)
+        // Already on Search page - do nothing
+        break;
+        
+      case 2: // Favorites
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const FavoritesTabScreen()),
+        );
+        break;
+        
+      case 3: // Profile
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ProfileScreen()),
+        );
+        break;
+    }
+  }
+
   Future<void> _fetchProperties() async {
     try {
-      // ✅ --- USE REPOSITORY ---
       final response = await _propertyRepository.getAllPropertiesForSearch();
       if (mounted) {
         setState(() {
-          _properties = response; // Already a List<Property>
+          _properties = response; 
           _applyFilters();
         });
       }
@@ -85,7 +112,6 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  /// ✅ Applies filters to the property list (now using Property model)
   void _applyFilters() {
     double? startPrice = double.tryParse(_startPriceController.text);
     double? endPrice = double.tryParse(_endPriceController.text);
@@ -107,19 +133,17 @@ class _SearchPageState extends State<SearchPage> {
         final matchesPrice = (startPrice == null || price >= startPrice) &&
             (endPrice == null || price <= endPrice || endPrice == 0);
 
-        // ✅ --- Also filter out rented properties from search ---
         final isAvailable = property.isRented == false;
 
         return matchesSearch &&
             matchesType &&
             matchesLocation &&
             matchesPrice &&
-            isAvailable; // Added this check
+            isAvailable; 
       }).toList();
     });
   }
 
-  // Helper for text field borders
   OutlineInputBorder _buildBorder(Color color, {double width = 1.0}) {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
@@ -129,33 +153,37 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.primaryColor;
+    final scaffoldBgColor = theme.scaffoldBackgroundColor;
+    final fieldBgColor = theme.cardColor;
+    final borderColor = theme.dividerColor;
+    final labelColor = theme.textTheme.bodySmall?.color;
+
     return Scaffold(
       backgroundColor: scaffoldBgColor,
       appBar: AppBar(
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
         title: Text(
           'Search Properties',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
-            color: Colors.white,
           ),
         ),
         centerTitle: true,
+        automaticallyImplyLeading: false, // ✅ Remove back button since we have bottom nav
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Styled Search Bar
             TextField(
               decoration: InputDecoration(
                 labelText: 'Search by type (e.g., house)...',
-                prefixIcon: const Icon(Icons.search, color: primaryColor),
+                prefixIcon: Icon(Icons.search, color: primaryColor),
                 filled: true,
                 fillColor: fieldBgColor,
                 labelStyle: TextStyle(color: labelColor),
-                floatingLabelStyle: const TextStyle(color: primaryColor),
+                floatingLabelStyle: TextStyle(color: primaryColor),
                 enabledBorder: _buildBorder(borderColor),
                 focusedBorder: _buildBorder(primaryColor, width: 2),
               ),
@@ -165,8 +193,6 @@ class _SearchPageState extends State<SearchPage> {
               },
             ),
             const SizedBox(height: 16),
-
-            // Styled Filters Row
             Row(
               children: [
                 Expanded(
@@ -185,7 +211,7 @@ class _SearchPageState extends State<SearchPage> {
                       filled: true,
                       fillColor: fieldBgColor,
                       labelStyle: TextStyle(color: labelColor),
-                      floatingLabelStyle: const TextStyle(color: primaryColor),
+                      floatingLabelStyle: TextStyle(color: primaryColor),
                       enabledBorder: _buildBorder(borderColor),
                       focusedBorder: _buildBorder(primaryColor, width: 2),
                       contentPadding: const EdgeInsets.symmetric(
@@ -210,7 +236,7 @@ class _SearchPageState extends State<SearchPage> {
                       filled: true,
                       fillColor: fieldBgColor,
                       labelStyle: TextStyle(color: labelColor),
-                      floatingLabelStyle: const TextStyle(color: primaryColor),
+                      floatingLabelStyle: TextStyle(color: primaryColor),
                       enabledBorder: _buildBorder(borderColor),
                       focusedBorder: _buildBorder(primaryColor, width: 2),
                       contentPadding: const EdgeInsets.symmetric(
@@ -221,8 +247,6 @@ class _SearchPageState extends State<SearchPage> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // Styled Price Range Inputs
             Row(
               children: [
                 Expanded(
@@ -232,11 +256,11 @@ class _SearchPageState extends State<SearchPage> {
                     decoration: InputDecoration(
                       labelText: 'Min Price',
                       prefixIcon:
-                          const Icon(Icons.currency_rupee, color: primaryColor),
+                          Icon(Icons.currency_rupee, color: primaryColor),
                       filled: true,
                       fillColor: fieldBgColor,
                       labelStyle: TextStyle(color: labelColor),
-                      floatingLabelStyle: const TextStyle(color: primaryColor),
+                      floatingLabelStyle: TextStyle(color: primaryColor),
                       enabledBorder: _buildBorder(borderColor),
                       focusedBorder: _buildBorder(primaryColor, width: 2),
                     ),
@@ -251,11 +275,11 @@ class _SearchPageState extends State<SearchPage> {
                     decoration: InputDecoration(
                       labelText: 'Max Price',
                       prefixIcon:
-                          const Icon(Icons.currency_rupee, color: primaryColor),
+                          Icon(Icons.currency_rupee, color: primaryColor),
                       filled: true,
                       fillColor: fieldBgColor,
                       labelStyle: TextStyle(color: labelColor),
-                      floatingLabelStyle: const TextStyle(color: primaryColor),
+                      floatingLabelStyle: TextStyle(color: primaryColor),
                       enabledBorder: _buildBorder(borderColor),
                       focusedBorder: _buildBorder(primaryColor, width: 2),
                     ),
@@ -265,11 +289,9 @@ class _SearchPageState extends State<SearchPage> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // Styled Result Section
             Expanded(
               child: _isLoading
-                  ? const Center(
+                  ? Center(
                       child: CircularProgressIndicator(color: primaryColor))
                   : _filteredProperties.isEmpty
                       ? Center(
@@ -284,7 +306,6 @@ class _SearchPageState extends State<SearchPage> {
                           itemBuilder: (context, index) {
                             final property = _filteredProperties[index];
                             
-                            // ✅ --- REPLACED with new widget ---
                             return SearchResultCard(
                               property: property,
                               onTap: () {
@@ -292,7 +313,7 @@ class _SearchPageState extends State<SearchPage> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => PropertyDetailsPage(
-                                      propertyId: property.id.toString(),
+                                      propertyId: property.id,
                                     ),
                                   ),
                                 );
@@ -303,6 +324,10 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
       ),
     );
   }

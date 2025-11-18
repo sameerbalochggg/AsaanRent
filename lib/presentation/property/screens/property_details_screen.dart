@@ -3,23 +3,21 @@ import 'package:rent_application/data/models/property_model.dart';
 import 'package:rent_application/data/repositories/profile_repository.dart';
 import 'package:rent_application/data/repositories/property_repository.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
-// --- Import your new widgets ---
+// --- Import your widgets ---
 import 'package:rent_application/presentation/property/widgets/property_details_carousel.dart';
 import 'package:rent_application/presentation/property/widgets/property_header_card.dart';
 import 'package:rent_application/presentation/property/widgets/property_features_grid.dart';
 import 'package:rent_application/presentation/property/widgets/property_info_card.dart';
 import 'package:rent_application/presentation/property/widgets/property_map_view.dart';
 import 'package:rent_application/presentation/property/widgets/contact_section.dart';
-//import 'package:rent_application/presentation/property/screens/full_screen_image_viewer.dart';
+import 'package:rent_application/presentation/property/widgets/property_floating_bar.dart';
+import 'package:rent_application/presentation/property/screens/full_screen_image_viewer.dart';
 
-
-
-// ✅ --- Added Carousel Slider Import ---
-import 'package:carousel_slider/carousel_slider.dart';
 
 class PropertyDetailsPage extends StatefulWidget {
-  final String propertyId;
+  final String propertyId; // ✅ This is a String (UUID)
 
   const PropertyDetailsPage({super.key, required this.propertyId});
 
@@ -39,11 +37,13 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   String? _errorMessage;
   int _currentIndex = 0;
   bool _isFavorite = false;
+  bool _isFavoriteLoading = false; 
 
   @override
   void initState() {
     super.initState();
     _fetchPropertyDetails();
+    _checkIfFavorite(); 
   }
 
   Future<void> _fetchPropertyDetails() async {
@@ -54,6 +54,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     });
 
     try {
+      // ✅ --- This is now String -> Property ---
       final property = await _propertyRepo.fetchPropertyById(widget.propertyId);
 
       String fetchedOwnerName = "Property Owner";
@@ -80,14 +81,79 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     }
   }
 
+  Future<void> _checkIfFavorite() async {
+    try {
+      final profile = await _profileRepo.getProfile();
+      if (profile != null && profile.favorites != null) {
+        
+        // ✅ --- FIX: This is now String vs String, which is correct ---
+        if (mounted) {
+          setState(() {
+            _isFavorite = profile.favorites!.contains(widget.propertyId);
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking favorite status: $e');
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    setState(() {
+      _isFavoriteLoading = true;
+    });
+
+    try {
+      // ✅ --- FIX: Pass the String ID (UUID) ---
+      await _profileRepo.toggleFavorite(widget.propertyId);
+      
+      if (mounted) {
+        final newFavoriteState = !_isFavorite;
+        setState(() {
+          _isFavorite = newFavoriteState;
+          _isFavoriteLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isFavorite ? 'Added to favorites ❤️' : 'Removed from favorites',
+              style: GoogleFonts.poppins(),
+            ),
+            duration: const Duration(seconds: 2),
+            backgroundColor: _isFavorite ? Colors.green : Colors.grey[700],
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error toggling favorite: $e');
+      if (mounted) {
+        setState(() {
+          _isFavoriteLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to update favorites. Please try again.',
+              style: GoogleFonts.poppins(),
+            ),
+            duration: const Duration(seconds: 2),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+
   void _showOptionsMenu() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: SafeArea(
           child: Column(
@@ -103,28 +169,29 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 ),
               ),
               ListTile(
-                leading: Icon(
-                  _isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: const Color(0xFF004D40),
-                ),
+                leading: _isFavoriteLoading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFF004D40),
+                        ),
+                      )
+                    : Icon(
+                        _isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: _isFavorite ? Colors.red : const Color(0xFF004D40),
+                      ),
                 title: Text(
                   _isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
                   style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                 ),
-                onTap: () {
-                  setState(() {
-                    _isFavorite = !_isFavorite;
-                  });
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(_isFavorite
-                          ? 'Added to favorites'
-                          : 'Removed from favorites'),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                },
+                onTap: _isFavoriteLoading
+                    ? null
+                    : () {
+                        Navigator.pop(context);
+                        _toggleFavorite();
+                      },
               ),
               ListTile(
                 leading: const Icon(Icons.bookmark_border, color: Color(0xFF004D40)),
@@ -137,7 +204,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Property saved successfully'),
-                      duration: Duration(seconds: 2),
+                      duration: const Duration(seconds: 2),
                     ),
                   );
                 },
@@ -154,7 +221,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Share feature coming soon'),
-                      duration: Duration(seconds: 2),
+                      duration: const Duration(seconds: 2),
                     ),
                   );
                 },
@@ -183,17 +250,14 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: _isLoading
           ? _buildLoading()
           : _hasError || _property == null
               ? _buildError()
               : CustomScrollView(
                   slivers: [
-                    // --- 1. The Modern App Bar ---
                     _buildModernAppBar(),
-                    
-                    // --- 2. The Page Content ---
                     SliverList(
                       delegate: SliverChildListDelegate([
                         Column(
@@ -213,16 +277,17 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                               phoneNumber: _property!.phone ?? '',
                               email: _property!.email ?? '',
                             ),
-                            // ✅ --- Reduced padding ---
-                            const SizedBox(height: 24), 
+                            const SizedBox(height: 100), // Padding for float bar
                           ],
                         ),
                       ]),
                     ),
                   ],
                 ),
-      // ❌ --- Removed floatingActionButton ---
-      // ❌ --- Removed floatingActionButtonLocation ---
+      floatingActionButton: !_isLoading && !_hasError && _property != null
+          ? const PropertyFloatingBar()
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -259,6 +324,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
       ],
       flexibleSpace: FlexibleSpaceBar(
         background: Hero(
+          // ✅ --- FIX: This is now String -> String ---
           tag: _property!.id,
           child: PropertyDetailsCarousel( 
             images: _getImages(),
@@ -349,204 +415,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ✅ --- FullScreenImageViewer remains here, as it's a separate screen ---
-class FullScreenImageViewer extends StatefulWidget {
-  final List<String> images;
-  final int initialIndex;
-  final String propertyName;
-
-  const FullScreenImageViewer({
-    super.key,
-    required this.images,
-    required this.initialIndex,
-    required this.propertyName,
-  });
-
-  @override
-  State<FullScreenImageViewer> createState() => _FullScreenImageViewerState();
-}
-
-class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
-  late int _currentIndex;
-  final TransformationController _transformationController =
-      TransformationController();
-
-  @override
-  void initState() {
-    super.initState();
-    _currentIndex = widget.initialIndex;
-  }
-
-  @override
-  void dispose() {
-    _transformationController.dispose();
-    super.dispose();
-  }
-
-  void _showOptionsMenu() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.favorite_border, color: Color(0xFF004D40)),
-                title: Text(
-                  'Add to Favorites',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Added to favorites')),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.bookmark_border, color: Color(0xFF004D40)),
-                title: Text(
-                  'Save Image',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Image saved successfully')),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.share_outlined, color: Color(0xFF004D40)),
-                title: Text(
-                  'Share Image',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Share feature coming soon')),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          PageView.builder(
-            itemCount: widget.images.length,
-            controller: PageController(initialPage: _currentIndex),
-            onPageChanged: (index) {
-              setState(() {
-                _currentIndex = index;
-                _transformationController.value = Matrix4.identity(); // Reset zoom
-              });
-            },
-            itemBuilder: (context, index) {
-              return InteractiveViewer(
-                transformationController: _transformationController,
-                minScale: 0.5,
-                maxScale: 4.0,
-                child: Center(
-                  child: Image.network(
-                    widget.images[index],
-                    fit: BoxFit.contain,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Center(
-                        child: Icon(Icons.error, color: Colors.white, size: 60),
-                      );
-                    },
-                  ),
-                ),
-              );
-            },
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          '${_currentIndex + 1} / ${widget.images.length}',
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.more_vert, color: Colors.white),
-                          onPressed: _showOptionsMenu,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

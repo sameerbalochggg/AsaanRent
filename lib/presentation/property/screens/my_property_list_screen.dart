@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:rent_application/data/models/property_model.dart';
 import 'package:rent_application/data/repositories/property_repository.dart';
 import 'package:rent_application/presentation/property/widgets/my_property_card.dart';
@@ -11,7 +12,6 @@ class MyPropertyListPage extends StatefulWidget {
 }
 
 class _MyPropertyListPageState extends State<MyPropertyListPage> {
-  final Color primaryColor = const Color(0xFF004D40);
   final PropertyRepository _repository = PropertyRepository();
 
   List<Property> properties = [];
@@ -50,7 +50,9 @@ class _MyPropertyListPageState extends State<MyPropertyListPage> {
 
   Future<void> _deleteProperty(int index) async {
     try {
+      // ✅ --- FIX: This is now String -> void ---
       await _repository.deleteProperty(properties[index].id);
+      
       if (mounted) {
         setState(() {
           properties.removeAt(index);
@@ -60,7 +62,7 @@ class _MyPropertyListPageState extends State<MyPropertyListPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Property deleted successfully'),
-            backgroundColor: primaryColor,
+            backgroundColor: Theme.of(context).primaryColor,
           ),
         );
       }
@@ -78,23 +80,17 @@ class _MyPropertyListPageState extends State<MyPropertyListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title:
-            const Text('My Properties', style: TextStyle(color: Colors.white)),
-        backgroundColor: primaryColor,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: _loadProperties,
-          ),
-        ],
+            const Text('My Properties'),
       ),
       body: isLoading
           ? Center(
-              child: CircularProgressIndicator(color: primaryColor),
+              child: CircularProgressIndicator(color: theme.primaryColor),
             )
           : errorMessage != null
               ? Center(
@@ -106,8 +102,8 @@ class _MyPropertyListPageState extends State<MyPropertyListPage> {
                       const SizedBox(height: 16),
                       Text(
                         'Error loading properties',
-                        style:
-                            TextStyle(fontSize: 18, color: Colors.grey[600]),
+                        style: GoogleFonts.poppins(
+                            fontSize: 18, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 8),
                       Padding(
@@ -115,7 +111,7 @@ class _MyPropertyListPageState extends State<MyPropertyListPage> {
                         child: Text(
                           errorMessage!,
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: GoogleFonts.poppins(
                               fontSize: 14, color: Colors.grey[500]),
                         ),
                       ),
@@ -123,7 +119,7 @@ class _MyPropertyListPageState extends State<MyPropertyListPage> {
                       ElevatedButton(
                         onPressed: _loadProperties,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
+                          backgroundColor: theme.primaryColor,
                           foregroundColor: Colors.white,
                         ),
                         child: const Text('Retry'),
@@ -141,13 +137,13 @@ class _MyPropertyListPageState extends State<MyPropertyListPage> {
                           const SizedBox(height: 16),
                           Text(
                             'No properties yet',
-                            style: TextStyle(
+                            style: GoogleFonts.poppins(
                                 fontSize: 18, color: Colors.grey[600]),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Add your first property to get started',
-                            style: TextStyle(
+                            style: GoogleFonts.poppins(
                                 fontSize: 14, color: Colors.grey[500]),
                           ),
                         ],
@@ -155,14 +151,13 @@ class _MyPropertyListPageState extends State<MyPropertyListPage> {
                     )
                   : RefreshIndicator(
                       onRefresh: _loadProperties,
-                      color: primaryColor,
+                      color: theme.primaryColor,
                       child: ListView.builder(
                         padding: const EdgeInsets.all(16),
                         itemCount: properties.length,
                         itemBuilder: (context, index) {
-                          return MyPropertyCard( // ✅ Use new widget
+                          return MyPropertyCard(
                             property: properties[index],
-                            primaryColor: primaryColor,
                             onUpdate: (updatedProperty) {
                               setState(() {
                                 properties[index] = updatedProperty;

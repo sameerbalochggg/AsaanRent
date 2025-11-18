@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:rent_application/presentation/auth/screens/splash.dart';
 import 'package:rent_application/presentation/providers/property_provider.dart';
-import 'package:rent_application/presentation/providers/property_provider.dart';
+import 'package:rent_application/presentation/providers/profile_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// --- Your App's Color Scheme ---
-const kPrimaryColor = Color(0xFF004D40);
+// --- Theme Imports ---
+import 'package:rent_application/presentation/providers/theme_provider.dart';
+import 'package:rent_application/core/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,46 +23,27 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ --- Use MultiProvider to provide all your app's "managers" ---
+    // MultiProvider registers all your app's "managers"
     return MultiProvider(
       providers: [
-        // Manages property lists
         ChangeNotifierProvider(create: (context) => PropertyProvider()),
-        // Manages user profile data
         ChangeNotifierProvider(create: (context) => ProfileProvider()),
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'AsaanRent', // Changed title
-        
-        // ✅ --- Upgraded theme to match your app's professional style ---
-        theme: ThemeData(
-          primaryColor: kPrimaryColor,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: kPrimaryColor,
-            primary: kPrimaryColor,
-            background: const Color(0xFFF8F9FA), // Light grey background
-          ),
-          scaffoldBackgroundColor: const Color(0xFFF8F9FA),
-          
-          // --- Set default font to Poppins ---
-          textTheme: GoogleFonts.poppinsTextTheme(
-            Theme.of(context).textTheme,
-          ),
-
-          // --- Set default AppBar theme ---
-          appBarTheme: AppBarTheme(
-            backgroundColor: kPrimaryColor,
-            foregroundColor: Colors.white,
-            elevation: 1,
-            titleTextStyle: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        home: const SplashScreen(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'AsaanRent',
+            
+            // Connects your light and dark themes
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeProvider.themeMode, 
+            
+            home: const SplashScreen(),
+          );
+        },
       ),
     );
   }

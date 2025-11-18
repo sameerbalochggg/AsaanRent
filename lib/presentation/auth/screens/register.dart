@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-//import 'package:rent_application/core/colors.dart';
 import 'package:rent_application/core/images.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
+// ✅ --- REFACTORED IMPORTS ---
+import 'package:rent_application/data/repositories/auth_repository.dart';
+// ❌ --- REMOVED SUPABASE IMPORT ---
+// import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -19,10 +22,12 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
-  final _supabase = Supabase.instance.client;
+  // ✅ --- Use Repository ---
+  final AuthRepository _authRepository = AuthRepository();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false; // ✅ Added loading state for button
 
   @override
   void dispose() {
@@ -33,73 +38,69 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
+  // ✅ --- REFACTORED: Uses AuthRepository ---
   Future<void> _registerUser() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        final response = await _supabase.auth.signUp(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-          emailRedirectTo:
-              'rentapp://login-callback', // ✅ Added custom redirect scheme
-          data: {
-            'full_name': _nameController.text.trim(),
-          },
-        );
+    if (!_formKey.currentState!.validate()) return;
 
-        // ✅ Check for error first
-        if (response.user == null) {
-          throw response;
-        }
+    setState(() {
+      _isLoading = true;
+    });
 
-        // ✅ If email already registered → block success message
-        if (response.user?.identities?.isEmpty ?? true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("This email is already registered. Please login."),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
-          return;
-        }
+    try {
+      await _authRepository.signUp(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        username: _nameController.text.trim(), // ✅ Pass username
+      );
 
-        // ✅ Success
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:
-                Text("🎉 Registration Successful! Please check your email."),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context); // back to login
-      } catch (error) {
-        // ✅ Friendly error handling
-        String errorMessage = "Something went wrong. Please try again.";
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content:
+              Text("🎉 Registration Successful! Please check your email."),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context); // back to login
+      
+    } catch (e) {
+      // ✅ Friendly error handling
+      String errorMessage = "Something went wrong. Please try again.";
+      final errorStr = e.toString().toLowerCase();
+      
+      if (errorStr.contains("email") && errorStr.contains("exists")) {
+        errorMessage = "This email is already registered. Please login.";
+      } else if (errorStr.contains("invalid email")) {
+        errorMessage = "Please enter a valid email address.";
+      } else if (errorStr.contains("password")) {
+        errorMessage = "Password is too weak. Try a stronger one.";
+      } else if (errorStr.contains("network") || errorStr.contains("socket")) {
+        errorMessage = "Unable to connect. Please check your internet.";
+      }
 
-        final errorStr = error.toString().toLowerCase();
-        if (errorStr.contains("email") && errorStr.contains("exists")) {
-          errorMessage = "This email is already registered. Please login.";
-        } else if (errorStr.contains("invalid email")) {
-          errorMessage = "Please enter a valid email address.";
-        } else if (errorStr.contains("password")) {
-          errorMessage = "Password is too weak. Try a stronger one.";
-        } else if (errorStr.contains("network") || errorStr.contains("socket")) {
-          errorMessage = "Unable to connect. Please check your internet.";
-        }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // ✅ --- Use Theme Colors ---
+    final theme = Theme.of(context);
+    
     return Scaffold(
-      backgroundColor: Color(0xFF004D40),
+      backgroundColor: theme.primaryColor, // ✅ Theme-aware
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -117,7 +118,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 style: GoogleFonts.poppins(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
-                  color: const Color.fromARGB(255, 209, 206, 214),
+                  color: Colors.white.withOpacity(0.9), // ✅ Theme-aware
                 ),
               ),
               const SizedBox(height: 8),
@@ -125,7 +126,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 "Register to get started",
                 style: GoogleFonts.poppins(
                   fontSize: 16,
-                  color: const Color.fromARGB(255, 146, 144, 144),
+                  color: Colors.white.withOpacity(0.7), // ✅ Theme-aware
                 ),
               ),
               const SizedBox(height: 30),
@@ -136,6 +137,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
+                color: theme.cardColor, // ✅ Theme-aware
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Form(
@@ -146,7 +148,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         TextFormField(
                           controller: _nameController,
                           decoration: InputDecoration(
-                            labelText: "Full Name",
+                            labelText: "Username", // ✅ Changed from "Full Name"
                             prefixIcon: const Icon(Icons.person_outline),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -154,7 +156,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return "Please enter your name";
+                              return "Please enter your username";
                             }
                             return null;
                           },
@@ -266,17 +268,23 @@ class _RegisterPageState extends State<RegisterPage> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              backgroundColor: Color(0xFF004D40),
+                              backgroundColor: theme.primaryColor, // ✅ Theme-aware
                             ),
-                            onPressed: _registerUser,
-                            child: Text(
-                              "Register",
-                              style: GoogleFonts.poppins(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
+                            onPressed: _isLoading ? null : _registerUser,
+                            child: _isLoading 
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(color: Colors.white),
+                                )
+                              : Text(
+                                  "Register",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
                           ),
                         ),
                       ],
@@ -291,7 +299,10 @@ class _RegisterPageState extends State<RegisterPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text("Already have an account?",
-                      style: GoogleFonts.poppins(fontSize: 14)),
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.white70, // ✅ Theme-aware
+                      )),
                   TextButton(
                     onPressed: () {
                       Navigator.pop(context); // go back to LoginPage
@@ -300,7 +311,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       "Login",
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
-                        color:const Color.fromARGB(255, 209, 206, 214),
+                        color: Colors.white, // ✅ Theme-aware
                       ),
                     ),
                   ),

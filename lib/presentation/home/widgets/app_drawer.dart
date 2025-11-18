@@ -4,11 +4,11 @@ import 'package:rent_application/data/repositories/auth_repository.dart';
 import 'package:rent_application/presentation/auth/screens/login.dart';
 import 'package:rent_application/presentation/property/screens/my_property_list_screen.dart';
 import 'package:rent_application/presentation/property/screens/add_property_screen.dart';
-import 'package:rent_application/presentation/auth/screens/profile_screen.dart';
+import 'package:rent_application/presentation/profile/screens/profile_screen.dart';
 import 'package:rent_application/presentation/auth/screens/settings_screen.dart';
-
-// ✅ --- 1. IMPORT THE SHARE PACKAGE ---
 import 'package:share_plus/share_plus.dart';
+import 'package:provider/provider.dart';
+import 'package:rent_application/presentation/providers/profile_provider.dart';
 
 class AppDrawer extends StatelessWidget {
   final VoidCallback onPropertyAdded;
@@ -23,7 +23,6 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  // ✅ --- THIS IS YOUR LOGOUT FUNCTION (ALREADY WORKING) ---
   Future<void> _showLogoutDialog(BuildContext context) async {
     return showDialog<void>(
       context: context,
@@ -53,10 +52,8 @@ class AppDrawer extends StatelessWidget {
                 Navigator.of(dialogContext).pop();
 
                 try {
-                  // 1. Calls the repository (Clean Architecture)
                   await AuthRepository().signOut();
                   
-                  // 2. Navigates to LoginPage
                   if (!context.mounted) return;
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
@@ -79,48 +76,57 @@ class AppDrawer extends StatelessWidget {
     );
   }
   
-  // ✅ --- 2. THIS IS YOUR NEW SHARE FUNCTION ---
   void _shareApp(BuildContext context) {
-     Navigator.pop(context); // Close the drawer first
+     Navigator.pop(context); 
      
-     // TODO: Replace with your real app store/play store link
      const String appLink = "https://play.google.com/store/apps/details?id=com.yourapp.id"; 
      final String shareText = "Check out AsaanRent, the best app for finding rentals in Balochistan!\n\n$appLink";
 
-     // This uses the share_plus package to open the native share dialog
      Share.share(shareText);
   }
 
   @override
   Widget build(BuildContext context) {
     final iconColor = Theme.of(context).iconTheme.color ?? Colors.black54;
+    final profileProvider = context.watch<ProfileProvider>();
 
     return Drawer(
+      // ✅ Use the theme's card color for the drawer background
+      backgroundColor: Theme.of(context).cardColor,
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
-            decoration: const BoxDecoration(
-              color: Color(0xFF004D40),
+            // ✅ Use theme color
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor,
             ),
             accountName: Text(
-              "Your Name",
+              profileProvider.isLoading ? "Loading..." : profileProvider.displayName,
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
             ),
             accountEmail: Text(
-              "user.email@example.com",
+              profileProvider.isLoading ? "..." : profileProvider.email,
               style: GoogleFonts.poppins(),
             ),
-            currentAccountPicture: const CircleAvatar(
+            currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white,
-              child: Icon(
-                Icons.person,
-                size: 40,
-                color: Color(0xFF004D40),
-              ),
+              backgroundImage: (profileProvider.avatarUrl != null &&
+                      profileProvider.avatarUrl!.isNotEmpty)
+                  ? NetworkImage(profileProvider.avatarUrl!)
+                  : null,
+              child: (profileProvider.avatarUrl == null ||
+                      profileProvider.avatarUrl!.isEmpty)
+                  ? Icon(
+                      Icons.person,
+                      size: 40,
+                      // ✅ Use theme color
+                      color: Theme.of(context).primaryColor,
+                    )
+                  : null,
             ),
           ),
           ListTile(
@@ -212,8 +218,8 @@ class AppDrawer extends StatelessWidget {
                 context: context,
                 applicationName: "AsaanRent",
                 applicationVersion: "1.0.0",
-                applicationIcon: const Icon(Icons.house,
-                    size: 40, color: Color(0xFF004D40)),
+                applicationIcon: Icon(Icons.house,
+                    size: 40, color: Theme.of(context).primaryColor),
                 applicationLegalese: "© 2025 AsaanRent. All rights reserved.",
                 children: [
                   Padding(
@@ -230,7 +236,6 @@ class AppDrawer extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.share_outlined, color: iconColor),
             title: Text("Share App", style: GoogleFonts.poppins()),
-            // ✅ --- 3. UPDATED ONTAP TO CALL THE FUNCTION ---
             onTap: () => _shareApp(context),
           ),
           const Divider(),
@@ -240,7 +245,6 @@ class AppDrawer extends StatelessWidget {
               "Logout",
               style: GoogleFonts.poppins(color: Colors.red),
             ),
-            // ✅ --- THIS IS YOUR LOGOUT BUTTON, IT'S ALREADY FUNCTIONAL ---
             onTap: () {
               _showLogoutDialog(context);
             },

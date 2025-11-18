@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:rent_application/data/models/property_model.dart';
 import 'package:rent_application/data/repositories/property_repository.dart';
 import 'package:rent_application/presentation/property/widgets/edit_property_tab.dart';
+import 'package:rent_application/core/theme.dart'; // Import your theme
 
 class PropertyDetailTabsScreen extends StatefulWidget {
-  final String propertyId;
-  final Color primaryColor;
+  final String propertyId; // Receives a String (UUID)
   final Function(Property) onUpdate;
   final VoidCallback onDelete;
 
   const PropertyDetailTabsScreen({
     Key? key,
     required this.propertyId,
-    required this.primaryColor,
     required this.onUpdate,
     required this.onDelete,
   }) : super(key: key);
@@ -51,7 +50,9 @@ class _PropertyDetailTabsScreenState extends State<PropertyDetailTabsScreen>
     });
 
     try {
+      // ✅ --- FIX: This is now String -> Property ---
       final property = await _repository.fetchPropertyById(widget.propertyId);
+      
       if (mounted) {
         setState(() {
           _currentProperty = property;
@@ -73,6 +74,8 @@ class _PropertyDetailTabsScreenState extends State<PropertyDetailTabsScreen>
 
     try {
       final newStatus = !_currentProperty!.isRented;
+
+      // ✅ --- FIX: Pass the 'String' id (UUID) ---
       await _repository.toggleRentalStatus(_currentProperty!.id, newStatus);
 
       if (mounted) {
@@ -91,7 +94,7 @@ class _PropertyDetailTabsScreenState extends State<PropertyDetailTabsScreen>
                   ? 'Property marked as RENTED'
                   : 'Property marked as AVAILABLE',
             ),
-            backgroundColor: widget.primaryColor,
+            backgroundColor: Theme.of(context).primaryColor,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -107,30 +110,49 @@ class _PropertyDetailTabsScreenState extends State<PropertyDetailTabsScreen>
       }
     }
   }
+  
+  Future<void> _onDeleteProperty() async {
+    Navigator.pop(context); // Close the dialog
+    try {
+      // ✅ --- FIX: Pass the String ID ---
+      await _repository.deleteProperty(_currentProperty!.id);
+      widget.onDelete();
+      if (mounted) {
+        Navigator.pop(context, true); // Pop the edit screen
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (isLoading) {
       return Scaffold(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
-          title: const Text('Loading...', style: TextStyle(color: Colors.white)),
-          backgroundColor: widget.primaryColor,
-          iconTheme: const IconThemeData(color: Colors.white),
+          title: const Text('Loading...'),
         ),
         body: Center(
-          child: CircularProgressIndicator(color: widget.primaryColor),
+          child: CircularProgressIndicator(color: theme.primaryColor),
         ),
       );
     }
 
     if (errorMessage != null || _currentProperty == null) {
       return Scaffold(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
-          title: const Text('Error', style: TextStyle(color: Colors.white)),
-          backgroundColor: widget.primaryColor,
-          iconTheme: const IconThemeData(color: Colors.white),
+          title: const Text('Error'),
         ),
         body: Center(
           child: Column(
@@ -146,7 +168,7 @@ class _PropertyDetailTabsScreenState extends State<PropertyDetailTabsScreen>
               ElevatedButton(
                 onPressed: _loadPropertyDetails,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: widget.primaryColor,
+                  backgroundColor: theme.primaryColor,
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('Retry'),
@@ -158,12 +180,9 @@ class _PropertyDetailTabsScreenState extends State<PropertyDetailTabsScreen>
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(_currentProperty!.displayName,
-            style: const TextStyle(color: Colors.white)),
-        backgroundColor: widget.primaryColor,
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(_currentProperty!.displayName),
         elevation: 0,
         actions: [
           IconButton(
@@ -181,28 +200,9 @@ class _PropertyDetailTabsScreenState extends State<PropertyDetailTabsScreen>
                       child: const Text('Cancel'),
                     ),
                     TextButton(
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        try {
-                          await _repository
-                              .deleteProperty(_currentProperty!.id);
-                          widget.onDelete();
-                          if (mounted) {
-                            Navigator.pop(context);
-                          }
-                        } catch (e) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Failed to delete: $e'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        }
-                      },
+                      onPressed: _onDeleteProperty, 
                       child: const Text('Delete',
-                          style: TextStyle(color: Colors.red)),
+                          style: TextStyle(color: kDestructiveColor)), 
                     ),
                   ],
                 ),
@@ -226,7 +226,7 @@ class _PropertyDetailTabsScreenState extends State<PropertyDetailTabsScreen>
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: theme.cardColor, 
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
@@ -299,7 +299,7 @@ class _PropertyDetailTabsScreenState extends State<PropertyDetailTabsScreen>
               children: [
                 EditPropertyTab(
                   property: _currentProperty!,
-                  primaryColor: widget.primaryColor,
+                  primaryColor: theme.primaryColor,
                   onSave: (updatedProperty) async {
                     try {
                       await _repository.updateProperty(updatedProperty);

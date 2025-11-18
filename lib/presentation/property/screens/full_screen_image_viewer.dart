@@ -39,12 +39,13 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor, // Theme-aware
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: SafeArea(
           child: Column(
+            // ✅ --- THIS IS THE FIX for 'MainAxisSize' error ---
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(

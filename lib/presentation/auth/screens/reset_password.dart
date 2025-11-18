@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'login.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:rent_application/data/repositories/auth_repository.dart'; // ✅ Use Repository
 
 class ResetPasswordPage extends StatefulWidget {
   final String email; // Email passed from ForgotPasswordPage
@@ -15,19 +16,18 @@ class ResetPasswordPage extends StatefulWidget {
 class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+      
+  final AuthRepository _authRepository = AuthRepository(); // ✅ Use Repository
 
   bool _loading = false;
-  bool _updated = false; // track whether update completed
-  bool _isTyping = false; // to enable real-time validation messages
+  bool _updated = false;
+  bool _isTyping = false; 
 
-  // 👁️ Password visibility toggles
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
 
-  final supabase = Supabase.instance.client;
-
-  /// Password Validator
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return "Please enter a password";
@@ -47,7 +47,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     return null;
   }
 
-  /// Confirm Password Validator
   String? _validateConfirmPassword(String? value) {
     if (value == null || value.isEmpty) {
       return "Please confirm your password";
@@ -58,7 +57,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     return null;
   }
 
-  /// Map Supabase error → User friendly message
   String _mapErrorToMessage(String error) {
     if (error.contains("invalid") || error.contains("token")) {
       return "Your reset session has expired. Please request a new OTP.";
@@ -71,7 +69,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     }
   }
 
-  /// Done handler
   Future<void> _onDone() async {
     FocusScope.of(context).unfocus();
 
@@ -81,21 +78,15 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     setState(() => _loading = true);
 
     try {
-      // ✅ Update password in Supabase
-      final response = await supabase.auth.updateUser(
-        UserAttributes(password: _newPasswordController.text.trim()),
-      );
-
-      if (response.user == null) {
-        throw Exception("Failed to update password");
-      }
+      // ✅ --- REFACTORED: Use AuthRepository ---
+      await _authRepository.updateUserPassword(_newPasswordController.text.trim());
 
       setState(() {
         _loading = false;
         _updated = true;
       });
 
-      // ✅ Show success popup
+      if (!mounted) return;
       await showDialog(
         context: context,
         barrierDismissible: false,
@@ -104,7 +95,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.check_circle, color: const Color(0xFF004D40), size: 72),
+              Icon(Icons.check_circle, color: Theme.of(context).primaryColor, size: 72),
               const SizedBox(height: 12),
               Text(
                 "Successful",
@@ -125,7 +116,6 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
             TextButton(
               onPressed: () {
                 Navigator.pop(ctx); // close dialog
-                // Navigate to LoginPage
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -161,11 +151,14 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ --- Get Theme Colors ---
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: theme.scaffoldBackgroundColor, // ✅ Theme-aware
       appBar: AppBar(
         title: const Text("Reset Password"),
-        backgroundColor: const Color(0xFF004D40),
+        // ✅ Theme-aware (colors are inherited from main.dart)
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -182,7 +175,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  color: theme.textTheme.bodyLarge?.color, // ✅ Theme-aware
                 ),
               ),
               const SizedBox(height: 30),
@@ -190,6 +183,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               Card(
                 elevation: 6,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                color: theme.cardColor, // ✅ Theme-aware
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Form(
@@ -254,7 +248,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              backgroundColor: _updated ? Colors.grey : const Color(0xFF004D40),
+                              backgroundColor: _updated ? Colors.grey : theme.primaryColor, // ✅ Theme-aware
                             ),
                             onPressed: (_loading || _updated) ? null : _onDone,
                             child: _loading
