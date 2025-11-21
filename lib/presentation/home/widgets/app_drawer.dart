@@ -185,7 +185,7 @@ class AppDrawer extends StatelessWidget {
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const AddPropertyPage(),
+                  builder: (context) => const AddPropertyScreen(),
                 ),
               );
               if (result == true) {

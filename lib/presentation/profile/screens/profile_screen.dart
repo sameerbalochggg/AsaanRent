@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:rent_application/presentation/profile/screens/edit_profile_screen.dart';
 
@@ -105,18 +104,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 512,
-      maxHeight: 512,
-      imageQuality: 85,
-    );
-
-    if (pickedFile != null && mounted) {
+  // ✅ NEW: Handle image selection with cropping
+  void _handleImageSelected(File? file) {
+    if (file != null && mounted) {
       setState(() {
-        _imageFile = File(pickedFile.path);
+        _imageFile = file;
       });
       _navigateToEdit();
     }
@@ -144,11 +136,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  // ✅ FIXED: Corrected navigation indices
+  // Navigation handler for bottom nav bar
   void _onItemTapped(int index) {
-    if (index == _selectedIndex) return; // Already on this tab
+    if (index == _selectedIndex) return;
 
-    // Navigate to appropriate screen based on index
     switch (index) {
       case 0: // Home
         Navigator.pushReplacement(
@@ -157,21 +148,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
         break;
         
-      case 1: // Search ✅ FIXED - Was showing Favorites
+      case 1: // Search
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const SearchPage()),
         );
         break;
         
-      case 2: // Favorites ✅ FIXED - Was showing Search
+      case 2: // Favorites
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const FavoritesTabScreen()),
         );
         break;
         
-      case 3: // Profile - already here, do nothing
+      case 3: // Profile - already here
         break;
     }
   }
@@ -215,10 +206,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
+                    // ✅ Updated with new callback
                     ProfileHeaderWidget(
                       profile: _profile,
                       imageFile: _imageFile,
-                      onAvatarTap: _pickImage,
+                      onImageSelected: _handleImageSelected,
                     ),
                     const SizedBox(height: 24),
                     UserInfoCardWidget(
@@ -232,7 +224,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     AboutSectionWidget(profile: _profile),
                     const SizedBox(height: 24),
                     _buildLogoutSection(),
-                    const SizedBox(height: 100), // Extra space for bottom nav
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
@@ -246,18 +238,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   PreferredSizeWidget _buildAppBar(ThemeData theme) {
     return AppBar(
+      backgroundColor: theme.primaryColor,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () {
+          Navigator.pop(context);
+        },
+      ),
       title: Text(
         "Profile",
         style: theme.textTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.w600,
+          color: Colors.white,
         ),
       ),
       centerTitle: true,
       elevation: 0.5,
-      automaticallyImplyLeading: false, // ✅ Remove back button
+      iconTheme: const IconThemeData(color: Colors.white),
       actions: [
         IconButton(
-          icon: const Icon(Icons.edit_outlined),
+          icon: const Icon(Icons.edit_outlined, color: Colors.white),
           onPressed: _isLoading ? null : _navigateToEdit,
         ),
       ],

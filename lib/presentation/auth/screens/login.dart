@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:rent_application/core/images.dart';
-import 'register.dart';
-import 'forgot_password.dart';
+import 'package:rent_application/presentation/auth/screens/register.dart'; // Ensure path is correct
+import 'package:rent_application/presentation/auth/screens/forgot_password.dart'; // Ensure path is correct
 
-// 🔹 Import your HomePage
-// ✅ --- FIX: Changed file name from 'home_Screen.dart' to 'home_screen.dart' ---
+// 🔹 Import your Home & Admin Pages
 import 'package:rent_application/presentation/home/screens/home_screen.dart';
+import 'package:rent_application/presentation/admin/screens/admin_dashboard_screen.dart';
 
-// ✅ --- REPOSITORY IMPORT ---
+// ✅ --- REPOSITORY IMPORTS ---
 import 'package:rent_application/data/repositories/auth_repository.dart';
+import 'package:rent_application/data/repositories/profile_repository.dart'; // Needed for role check
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -23,7 +24,9 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  // ✅ Initialize Repositories
   final AuthRepository _authRepository = AuthRepository();
+  final ProfileRepository _profileRepository = ProfileRepository();
 
   bool _obscurePassword = true;
   bool _isLoading = false;
@@ -43,21 +46,36 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
+      // 1. Sign In via Auth Repository
       await _authRepository.signIn(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
 
+      // 2. Fetch Profile to Check Role
+      final profile = await _profileRepository.getProfile();
+      
       if (!mounted) return;
+      
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Login Successful!")),
       );
 
-      // ✅ This navigation is now correct
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      // ✅ 3. ROLE-BASED REDIRECTION
+      if (profile != null && profile.role == 'admin') {
+        // Redirect Admin
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+        );
+      } else {
+        // Redirect Normal User
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomePage()),
+        );
+      }
+
     } catch (e) {
       String errorMessage = "Something went wrong. Please try again.";
       final errorText = e.toString().toLowerCase();
@@ -72,7 +90,10 @@ class _LoginPageState extends State<LoginPage> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       if (mounted) {
@@ -108,7 +129,7 @@ class _LoginPageState extends State<LoginPage> {
                 style: GoogleFonts.poppins(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
-                  // ✅ Use light color on dark background
+                  // ✅ Use light color on dark background (Primary color is usually dark)
                   color: Colors.white.withOpacity(0.9),
                 ),
               ),
@@ -123,7 +144,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 30),
 
-              // Login Form
+              // Login Form Card
               Card(
                 elevation: 6,
                 shape: RoundedRectangleBorder(
@@ -143,9 +164,13 @@ class _LoginPageState extends State<LoginPage> {
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
                             labelText: "Email",
-                            prefixIcon: const Icon(Icons.email_outlined),
+                            prefixIcon: Icon(Icons.email_outlined, color: theme.primaryColor),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: theme.primaryColor, width: 2),
                             ),
                           ),
                           validator: (value) {
@@ -165,12 +190,13 @@ class _LoginPageState extends State<LoginPage> {
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
                             labelText: "Password",
-                            prefixIcon: const Icon(Icons.lock_outline),
+                            prefixIcon: Icon(Icons.lock_outline, color: theme.primaryColor),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword
                                     ? Icons.visibility_off
                                     : Icons.visibility,
+                                color: Colors.grey,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -180,6 +206,10 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: theme.primaryColor, width: 2),
                             ),
                           ),
                           validator: (value) {

@@ -12,7 +12,6 @@ import 'package:rent_application/presentation/property/widgets/property_features
 import 'package:rent_application/presentation/property/widgets/property_info_card.dart';
 import 'package:rent_application/presentation/property/widgets/property_map_view.dart';
 import 'package:rent_application/presentation/property/widgets/contact_section.dart';
-import 'package:rent_application/presentation/property/widgets/property_floating_bar.dart';
 import 'package:rent_application/presentation/property/screens/full_screen_image_viewer.dart';
 
 
@@ -284,10 +283,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                     ),
                   ],
                 ),
-      floatingActionButton: !_isLoading && !_hasError && _property != null
-          ? const PropertyFloatingBar()
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 

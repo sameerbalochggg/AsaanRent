@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 class Property {
-  final String id; // ✅ FIX: Changed to String to match uuid
+  final String id; // UUID
   final String? ownerId;
+  final String? ownerName;
   final String? propertyType;
   final String? location;
   final double? price;
-  final String? area; // ✅ FIX: Changed to String? to match DB
+  final String? area;
   final int? bedrooms;
   final int? bathrooms;
   final bool? kitchen;
@@ -25,12 +26,15 @@ class Property {
   final double? latitude;
   final double? longitude;
   final bool isRented;
+  final bool isVerified; // ✅ ADDED: Admin verification status
   final DateTime? createdAt;
-  final int? profileId; // ✅ ADDED: From your screenshot
+  final DateTime? updatedAt;
+  final int? profileId;
 
   Property({
     required this.id,
     this.ownerId,
+    this.ownerName,
     this.propertyType,
     this.location,
     this.price,
@@ -53,10 +57,13 @@ class Property {
     this.latitude,
     this.longitude,
     this.isRented = false,
+    this.isVerified = false, // ✅ Default to false
     this.createdAt,
+    this.updatedAt,
     this.profileId,
   });
 
+  // --- Helper functions for safe parsing ---
   static double? _safeDoubleParse(dynamic value) {
     if (value == null) return null;
     if (value is num) return value.toDouble();
@@ -68,16 +75,19 @@ class Property {
     if (value is int) return value;
     return int.tryParse(value.toString());
   }
+  // ----------------------------------------
 
   factory Property.fromJson(Map<String, dynamic> json) {
     try {
       return Property(
-        id: json['id'] as String, // ✅ FIX: Parse as String
-        ownerId: json['owner_id'] as String?,
+        id: json['id'].toString(), // Always String
+        ownerId: json['owner_id']?.toString(),
+        // Map 'username' from DB to 'ownerName' in model
+        ownerName: json['owner_name'] as String? ?? json['username'] as String?, 
         propertyType: json['property_type'] as String?,
         location: json['location'] as String?,
         price: _safeDoubleParse(json['price']),
-        area: json['area'] as String?, // ✅ FIX: Parse as String?
+        area: json['area']?.toString(),
         bedrooms: _safeIntParse(json['bedrooms']),
         bathrooms: _safeIntParse(json['bathrooms']),
         kitchen: json['kitchen'] as bool?,
@@ -93,15 +103,19 @@ class Property {
         phone: json['phone'] as String?,
         email: json['email'] as String?,
         images: json['images'] != null
-            ? (json['images'] as List).map((e) => e.toString()).toList()
+            ? (json['images'] is List ? List<String>.from(json['images']) : null)
             : null,
         latitude: _safeDoubleParse(json['latitude']),
         longitude: _safeDoubleParse(json['longitude']),
         isRented: json['is_rented'] as bool? ?? false,
+        isVerified: json['is_verified'] as bool? ?? false, // ✅ Parse isVerified
         createdAt: json['created_at'] != null
             ? DateTime.parse(json['created_at'] as String)
             : null,
-        profileId: _safeIntParse(json['profile_id']), // ✅ ADDED
+        updatedAt: json['updated_at'] != null
+            ? DateTime.parse(json['updated_at'] as String)
+            : null,
+        profileId: _safeIntParse(json['profile_id']),
       );
     } catch (e) {
       debugPrint("Error parsing Property.fromJson: $e");
@@ -111,8 +125,8 @@ class Property {
   }
 
   Map<String, dynamic> toJson() {
-    // This map is used for UPDATING, so we don't send id, owner_id, or created_at
     return {
+      'username': ownerName, // Write back to 'username' column if needed
       'property_type': propertyType,
       'location': location,
       'price': price,
@@ -135,6 +149,7 @@ class Property {
       'latitude': latitude,
       'longitude': longitude,
       'is_rented': isRented,
+      'is_verified': isVerified, // ✅ Include isVerified
       'profile_id': profileId,
     };
   }
@@ -142,13 +157,13 @@ class Property {
   Property copyWith({
     String? id,
     String? ownerId,
+    String? ownerName,
     String? propertyType,
     String? location,
     double? price,
-    String? area, // ✅ FIX
+    String? area,
     int? bedrooms,
     int? bathrooms,
-    // ... (all bools)
     bool? kitchen,
     bool? parking,
     bool? furnished,
@@ -165,12 +180,15 @@ class Property {
     double? latitude,
     double? longitude,
     bool? isRented,
+    bool? isVerified, // ✅ Added to copyWith
     DateTime? createdAt,
+    DateTime? updatedAt,
     int? profileId,
   }) {
     return Property(
       id: id ?? this.id,
       ownerId: ownerId ?? this.ownerId,
+      ownerName: ownerName ?? this.ownerName,
       propertyType: propertyType ?? this.propertyType,
       location: location ?? this.location,
       price: price ?? this.price,
@@ -193,7 +211,9 @@ class Property {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       isRented: isRented ?? this.isRented,
+      isVerified: isVerified ?? this.isVerified, // ✅ Handle copy
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       profileId: profileId ?? this.profileId,
     );
   }
@@ -204,4 +224,5 @@ class Property {
   String get displayPrice =>
       price != null ? 'PKR ${price!.toStringAsFixed(0)}' : 'Price not set';
   String get displayDescription => description ?? 'No description';
+  String get displayOwnerName => ownerName ?? 'Property Owner';
 }

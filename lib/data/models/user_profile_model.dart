@@ -14,6 +14,7 @@ class UserProfile {
   final DateTime? updatedAt;
   final DateTime? createdAt;
   final List<String>? favorites; // List of UUIDs (Strings)
+  final String role; // ✅ ADDED: Role field (admin/user)
 
   UserProfile({
     required this.id,
@@ -28,6 +29,7 @@ class UserProfile {
     this.updatedAt,
     this.createdAt,
     this.favorites,
+    this.role = 'user', // ✅ Default to 'user'
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -51,6 +53,8 @@ class UserProfile {
         favorites: json['favorites'] != null
             ? List<String>.from(json['favorites'].map((id) => id.toString()))
             : [],
+        // ✅ Parse Role (default to 'user' if missing)
+        role: json['role'] as String? ?? 'user', 
       );
     } catch (e) {
       debugPrint("Error parsing UserProfile: $e");
@@ -69,10 +73,13 @@ class UserProfile {
       'language': language,
       'avatar_url': avatarUrl,
       'favorites': favorites,
+      // We typically don't send 'role' back to prevent hacking, 
+      // but if you are building an admin edit screen, you might need it.
+      'role': role, 
     };
   }
 
-  // ✅ --- ADDED copyWith method ---
+  // Helper method for copying
   UserProfile copyWith({
     int? id,
     String? userId,
@@ -86,6 +93,7 @@ class UserProfile {
     DateTime? updatedAt,
     DateTime? createdAt,
     List<String>? favorites,
+    String? role, // ✅ Added to copyWith
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -100,6 +108,7 @@ class UserProfile {
       updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
       favorites: favorites ?? this.favorites,
+      role: role ?? this.role, // ✅ Added to copyWith
     );
   }
 }

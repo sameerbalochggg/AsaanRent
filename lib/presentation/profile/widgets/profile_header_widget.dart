@@ -2,48 +2,54 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:rent_application/data/models/user_profile_model.dart';
-import 'profile_avatar_widget.dart';
+import 'package:rent_application/presentation/profile/widgets/profile_avatar_widget.dart';
 
 class ProfileHeaderWidget extends StatelessWidget {
   final UserProfile? profile;
   final File? imageFile;
-  final VoidCallback onAvatarTap;
+  final Function(File?) onImageSelected; // ✅ Changed from VoidCallback
 
   const ProfileHeaderWidget({
     super.key,
     required this.profile,
     required this.imageFile,
-    required this.onAvatarTap,
+    required this.onImageSelected, // ✅ Changed parameter name
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // ✅ Using username from UserProfile model
+    final displayName = profile?.username ?? 'User';
 
     return Column(
       children: [
+        // ✅ Updated ProfileAvatarWidget with new callback
         ProfileAvatarWidget(
           profile: profile,
           imageFile: imageFile,
-          onTap: onAvatarTap,
+          onImageSelected: onImageSelected, // ✅ Pass the callback
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Text(
-          profile?.username ?? "No Name",
+          displayName,
           style: GoogleFonts.poppins(
-            fontSize: 20,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: theme.textTheme.bodyLarge?.color,
+            color: theme.textTheme.titleLarge?.color,
           ),
         ),
-        Text(
-          profile?.profession ?? "No Profession",
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: Colors.grey[600],
+        if (profile?.bio != null && profile!.bio!.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(
+            profile!.bio!,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: theme.textTheme.bodyMedium?.color,
+            ),
+            textAlign: TextAlign.center,
           ),
-        ),
-        const SizedBox(height: 8),
+        ],
       ],
     );
   }

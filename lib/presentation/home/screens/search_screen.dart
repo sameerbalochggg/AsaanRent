@@ -50,7 +50,7 @@ class _SearchPageState extends State<SearchPage> {
     super.dispose();
   }
   
-  // ✅ FIXED: Complete navigation logic with Home, Search, Favorites, and Profile
+  // ✅ Complete navigation logic with Home, Search, Favorites, and Profile
   void _onItemTapped(int index) {
     // If already on the current page, do nothing
     if (index == _selectedIndex) {
@@ -163,14 +163,23 @@ class _SearchPageState extends State<SearchPage> {
     return Scaffold(
       backgroundColor: scaffoldBgColor,
       appBar: AppBar(
+        backgroundColor: primaryColor, // ✅ Follow theme color
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white), // ✅ White back arrow
+          onPressed: () {
+            Navigator.pop(context); // ✅ Navigate back
+          },
+        ),
         title: Text(
           'Search Properties',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
+            color: Colors.white, // ✅ White text
           ),
         ),
         centerTitle: true,
-        automaticallyImplyLeading: false, // ✅ Remove back button since we have bottom nav
+        elevation: 0.5,
+        iconTheme: const IconThemeData(color: Colors.white), // ✅ All icons white
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

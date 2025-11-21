@@ -32,7 +32,7 @@ class AuthRepository {
         password: password,
         emailRedirectTo: 'rentapp://login-callback',
         data: {
-          'username': username, 
+          'username': username, // This saves to 'raw_user_meta_data'
         },
       );
       
@@ -94,8 +94,8 @@ class AuthRepository {
     }
   }
 
-  // ✅ --- THIS IS THE NEWLY ADDED FUNCTION ---
-  /// Updates the user's password after they have been authenticated (e.g., via OTP)
+  // ✅ --- MISSING FUNCTION ADDED ---
+  /// Updates the user's password after they have been authenticated
   Future<void> updateUserPassword(String newPassword) async {
     try {
       await _supabase.auth.updateUser(
