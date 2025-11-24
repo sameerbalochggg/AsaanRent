@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rent_application/data/models/property_model.dart';
+import 'package:rent_application/data/models/report_model.dart'; // ✅ Added Import for Report
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final _supabase = Supabase.instance.client;
@@ -37,7 +38,7 @@ class PropertyRepository {
       final response = await _supabase
           .from('properties')
           .select()
-          .inFilter('id', ids); 
+          .filter('id', 'in', ids); // ✅ Corrected syntax
       return (response as List).map((json) => Property.fromJson(json)).toList();
     } catch (e) {
       debugPrint("Error in getPropertiesByIds: $e");
@@ -63,6 +64,24 @@ class PropertyRepository {
     }
   }
 
+  /// ✅ NEW: Fetch all properties posted by a specific user (by user_id) - For Admin
+  Future<List<Property>> fetchPropertiesByUserId(String userId) async {
+    try {
+      final response = await _supabase
+          .from('properties')
+          .select('*')
+          .eq('owner_id', userId)
+          .order('created_at', ascending: false);
+
+      debugPrint('✅ Fetched ${response.length} properties for user: $userId');
+
+      return (response as List).map((json) => Property.fromJson(json)).toList();
+    } catch (e) {
+      debugPrint('❌ Error fetching user properties: $e');
+      throw Exception('Failed to fetch user properties: $e');
+    }
+  }
+
   /// Fetches a single property by its ID (UUID).
   Future<Property> fetchPropertyById(String propertyId) async {
     try {
@@ -78,7 +97,6 @@ class PropertyRepository {
     }
   }
 
-  // ✅ --- FIX: Fetch username and add to property data ---
   /// Adds a new property to the database.
   Future<void> addProperty(Map<String, dynamic> propertyData) async {
     try {
@@ -98,7 +116,6 @@ class PropertyRepository {
       }
 
       // 2. Add the username to the property data
-      // We use the key 'username' because that matches your properties table column
       if (ownerName != null) {
         propertyData['username'] = ownerName;
       }
@@ -174,6 +191,38 @@ class PropertyRepository {
           .eq('id', propertyId);
     } catch (e) {
       throw Exception('Failed to update verification: $e');
+    }
+  }
+
+  // ✅ --- USER: Report a property ---
+  Future<void> reportProperty(String propertyId, String reason) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) throw Exception("User not logged in");
+
+      await _supabase.from('reports').insert({
+        'property_id': propertyId,
+        'reporter_id': userId,
+        'reason': reason,
+      });
+    } catch (e) {
+      debugPrint("Error reporting property: $e");
+      rethrow;
+    }
+  }
+
+  // ✅ --- ADMIN: Fetch ALL reports ---
+  Future<List<Report>> fetchAllReports() async {
+    try {
+      final response = await _supabase
+          .from('reports')
+          .select()
+          .order('created_at', ascending: false);
+      
+      return (response as List).map((json) => Report.fromJson(json)).toList();
+    } catch (e) {
+      debugPrint("Error fetching reports: $e");
+      rethrow;
     }
   }
 }

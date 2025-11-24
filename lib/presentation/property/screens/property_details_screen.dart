@@ -5,7 +5,7 @@ import 'package:rent_application/data/repositories/property_repository.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
-// --- Import your widgets ---
+// widgets
 import 'package:rent_application/presentation/property/widgets/property_details_carousel.dart';
 import 'package:rent_application/presentation/property/widgets/property_header_card.dart';
 import 'package:rent_application/presentation/property/widgets/property_features_grid.dart';
@@ -16,7 +16,7 @@ import 'package:rent_application/presentation/property/screens/full_screen_image
 
 
 class PropertyDetailsPage extends StatefulWidget {
-  final String propertyId; // ✅ This is a String (UUID)
+  final String propertyId;
 
   const PropertyDetailsPage({super.key, required this.propertyId});
 
@@ -36,16 +36,24 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   String? _errorMessage;
   int _currentIndex = 0;
   bool _isFavorite = false;
-  bool _isFavoriteLoading = false; 
+  bool _isFavoriteLoading = false;
+
+  // Cache the images list to prevent rebuilding
+  List<String> _cachedImages = [];
+  
+  // Cache the carousel widget to prevent unnecessary rebuilds
+  Widget? _cachedCarousel;
 
   @override
   void initState() {
     super.initState();
     _fetchPropertyDetails();
-    _checkIfFavorite(); 
+    _checkIfFavorite();
   }
 
   Future<void> _fetchPropertyDetails() async {
+    if (!mounted) return;
+
     setState(() {
       _isLoading = true;
       _hasError = false;
@@ -53,7 +61,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     });
 
     try {
-      // ✅ --- This is now String -> Property ---
       final property = await _propertyRepo.fetchPropertyById(widget.propertyId);
 
       String fetchedOwnerName = "Property Owner";
@@ -61,121 +68,173 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         fetchedOwnerName = await _profileRepo.fetchOwnerName(property.ownerId!);
       }
 
-      if (mounted) {
-        setState(() {
-          _property = property;
-          _ownerName = fetchedOwnerName;
-          _isLoading = false;
-        });
-      }
+      if (!mounted) return;
+
+      setState(() {
+        _property = property;
+        _ownerName = fetchedOwnerName;
+        _cachedImages = property.images ?? [];
+        _isLoading = false;
+        // Build carousel once when data is loaded
+        _cachedCarousel = _buildCarousel();
+      });
     } catch (e) {
-      debugPrint('Error fetching property: $e');
-      if (mounted) {
-        setState(() {
-          _hasError = true;
-          _errorMessage = e.toString();
-          _isLoading = false;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _hasError = true;
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
     }
   }
 
   Future<void> _checkIfFavorite() async {
     try {
       final profile = await _profileRepo.getProfile();
+      if (!mounted) return;
+
       if (profile != null && profile.favorites != null) {
-        
-        // ✅ --- FIX: This is now String vs String, which is correct ---
-        if (mounted) {
-          setState(() {
-            _isFavorite = profile.favorites!.contains(widget.propertyId);
-          });
-        }
+        setState(() {
+          _isFavorite = profile.favorites!.contains(widget.propertyId);
+        });
       }
     } catch (e) {
-      debugPrint('Error checking favorite status: $e');
+      debugPrint('Error checking favorite: $e');
     }
   }
 
   Future<void> _toggleFavorite() async {
+    if (!mounted) return;
     setState(() {
       _isFavoriteLoading = true;
     });
 
     try {
-      // ✅ --- FIX: Pass the String ID (UUID) ---
       await _profileRepo.toggleFavorite(widget.propertyId);
-      
-      if (mounted) {
-        final newFavoriteState = !_isFavorite;
-        setState(() {
-          _isFavorite = newFavoriteState;
-          _isFavoriteLoading = false;
-        });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _isFavorite ? 'Added to favorites ❤️' : 'Removed from favorites',
-              style: GoogleFonts.poppins(),
-            ),
-            duration: const Duration(seconds: 2),
-            backgroundColor: _isFavorite ? Colors.green : Colors.grey[700],
+      if (!mounted) return;
+
+      setState(() {
+        _isFavorite = !_isFavorite;
+        _isFavoriteLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isFavorite ? 'Added to favorites ❤️' : 'Removed from favorites',
+            style: GoogleFonts.poppins(),
           ),
-        );
-      }
+          backgroundColor: _isFavorite ? Colors.green : Colors.grey[700],
+          duration: const Duration(seconds: 2),
+        ),
+      );
     } catch (e) {
-      debugPrint('Error toggling favorite: $e');
-      if (mounted) {
-        setState(() {
-          _isFavoriteLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to update favorites. Please try again.',
-              style: GoogleFonts.poppins(),
-            ),
-            duration: const Duration(seconds: 2),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (!mounted) return;
+
+      setState(() {
+        _isFavoriteLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Failed to update favorites. Please try again.'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
 
+  Future<void> _showReportDialog() async {
+    if (!mounted) return;
+
+    final TextEditingController reasonController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          "Report Property",
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Why are you reporting this property?",
+                style: GoogleFonts.poppins(fontSize: 14)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: reasonController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                hintText: "e.g., Fake listing, Wrong price...",
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              if (reasonController.text.trim().isEmpty) return;
+
+              Navigator.pop(dialogContext);
+
+              try {
+                await _propertyRepo.reportProperty(
+                  widget.propertyId,
+                  reasonController.text.trim(),
+                );
+
+                if (!mounted) return;
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Report submitted successfully"),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Failed to report: $e"), backgroundColor: Colors.red),
+                );
+              }
+            },
+            child: const Text("Report", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _showOptionsMenu() {
+    if (!mounted) return;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
+      builder: (sheetContext) => Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
+          color: Theme.of(sheetContext).cardColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
               ListTile(
                 leading: _isFavoriteLoading
                     ? const SizedBox(
                         width: 24,
                         height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Color(0xFF004D40),
-                        ),
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : Icon(
                         _isFavorite ? Icons.favorite : Icons.favorite_border,
@@ -183,49 +242,33 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                       ),
                 title: Text(
                   _isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  style: GoogleFonts.poppins(),
                 ),
                 onTap: _isFavoriteLoading
                     ? null
                     : () {
-                        Navigator.pop(context);
+                        Navigator.pop(sheetContext);
                         _toggleFavorite();
                       },
               ),
               ListTile(
-                leading: const Icon(Icons.bookmark_border, color: Color(0xFF004D40)),
-                title: Text(
-                  'Save Property',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                ),
+                leading: const Icon(Icons.share, color: Color(0xFF004D40)),
+                title: Text("Share Property", style: GoogleFonts.poppins()),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pop(sheetContext);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Property saved successfully'),
-                      duration: const Duration(seconds: 2),
-                    ),
+                    const SnackBar(content: Text("Share option coming soon")),
                   );
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.share_outlined, color: Color(0xFF004D40)),
-                title: Text(
-                  'Share Property',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                ),
+                leading: const Icon(Icons.flag, color: Colors.red),
+                title: Text("Report Property", style: GoogleFonts.poppins(color: Colors.red)),
                 onTap: () {
-                  Navigator.pop(context);
-                  // TODO: Implement share functionality
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Share feature coming soon'),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
+                  Navigator.pop(sheetContext);
+                  _showReportDialog();
                 },
               ),
-              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -233,15 +276,32 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
     );
   }
 
-  void _openFullScreenImage(int initialIndex) {
+  void _openFullScreenImage(int index) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => FullScreenImageViewer(
-          images: _getImages(),
-          initialIndex: initialIndex,
+        builder: (_) => FullScreenImageViewer(
+          images: _cachedImages,
+          initialIndex: index,
           propertyName: _property!.displayName,
         ),
+      ),
+    );
+  }
+
+  // Build carousel widget once and cache it
+  Widget _buildCarousel() {
+    return RepaintBoundary(
+      child: PropertyDetailsCarousel(
+        images: _cachedImages,
+        currentIndex: _currentIndex,
+        controller: _carouselController,
+        onPageChanged: (i) {
+          if (!mounted) return;
+          setState(() => _currentIndex = i);
+        },
+        onImageTap: (i) => _openFullScreenImage(i),
+        placeholderImage: _buildPlaceholderImage(),
       ),
     );
   }
@@ -249,24 +309,22 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.white,
       body: _isLoading
           ? _buildLoading()
-          : _hasError || _property == null
+          : _hasError
               ? _buildError()
-              : CustomScrollView(
-                  slivers: [
-                    _buildModernAppBar(),
-                    SliverList(
-                      delegate: SliverChildListDelegate([
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+              : _property == null
+                  ? _buildError()
+                  : CustomScrollView(
+                      slivers: [
+                        _buildModernAppBar(),
+                        SliverList(
+                          delegate: SliverChildListDelegate([
                             PropertyHeaderCard(property: _property!),
                             PropertyFeaturesGrid(property: _property!),
                             PropertyInfoCard(property: _property!),
-                            if (_property!.latitude != null &&
-                                _property!.longitude != null)
+                            if (_property!.latitude != null && _property!.longitude != null)
                               PropertyMapView(
                                 latitude: _property!.latitude!,
                                 longitude: _property!.longitude!,
@@ -276,70 +334,57 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                               phoneNumber: _property!.phone ?? '',
                               email: _property!.email ?? '',
                             ),
-                            const SizedBox(height: 100), // Padding for float bar
-                          ],
+                            const SizedBox(height: 24),
+                          ]),
                         ),
-                      ]),
+                      ],
                     ),
-                  ],
-                ),
     );
   }
 
   Widget _buildModernAppBar() {
     return SliverAppBar(
-      expandedHeight: 350.0,
-      backgroundColor: const Color(0xFF004D40),
-      foregroundColor: Colors.white,
+      expandedHeight: 350,
       pinned: true,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      foregroundColor: Colors.white,
       stretch: true,
-      leading: Container(
-        margin: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.5),
-          shape: BoxShape.circle,
-        ),
-        child: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+      leading: _buildCircleButton(
+        icon: Icons.arrow_back,
+        action: () => Navigator.pop(context),
       ),
       actions: [
-        Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.5),
-            shape: BoxShape.circle,
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onPressed: _showOptionsMenu,
-          ),
+        _buildCircleButton(
+          icon: Icons.more_vert,
+          action: _showOptionsMenu,
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        background: Hero(
-          // ✅ --- FIX: This is now String -> String ---
-          tag: _property!.id,
-          child: PropertyDetailsCarousel( 
-            images: _getImages(),
-            currentIndex: _currentIndex,
-            controller: _carouselController,
-            onPageChanged: (index) {
-              setState(() { _currentIndex = index; });
-            },
-            onImageTap: (index) => _openFullScreenImage(index),
-            placeholderImage: _buildPlaceholderImage(),
-          ),
+        background: Container(
+          color: Colors.white,
+          child: _cachedCarousel ?? _buildPlaceholderImage(),
         ),
         stretchModes: const [
           StretchMode.zoomBackground,
-          StretchMode.blurBackground,
         ],
       ),
     );
   }
 
+  Widget _buildCircleButton({required IconData icon, required Function action}) {
+    return Container(
+      margin: const EdgeInsets.all(8),
+      decoration: const BoxDecoration(
+        color: Colors.black45,
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: Colors.white),
+        onPressed: () => action(),
+      ),
+    );
+  }
 
   Widget _buildLoading() {
     return const Center(
@@ -389,10 +434,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         ),
       ),
     );
-  }
-
-  List<String> _getImages() {
-    return _property?.images ?? [];
   }
 
   Widget _buildPlaceholderImage() {

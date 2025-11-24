@@ -54,6 +54,7 @@ class AdminPropertyCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            // ✅ Verification Icon
             if (property.isVerified)
               const Icon(Icons.verified, size: 16, color: Colors.blue)
           ],
@@ -71,7 +72,7 @@ class AdminPropertyCard extends StatelessWidget {
               style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 4),
-            // ✅ --- FIX: Use displayOwnerName getter ---
+            // ✅ Owner Name (Fixed logic: uses getter which maps to username)
             Text(
                "Owner: ${property.displayOwnerName}", 
                style: GoogleFonts.poppins(

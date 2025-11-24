@@ -8,10 +8,15 @@ class PropertyHeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ --- Get theme-aware colors ---
+    final theme = Theme.of(context);
+    final primaryColor = theme.primaryColor;
+    final cardColor = theme.cardColor;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor, // ✅ Use theme card color
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -23,15 +28,36 @@ class PropertyHeaderCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            property.displayName,
-            style: GoogleFonts.poppins(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF004D40),
-            ),
+          // ✅ --- Title Row with Verified Badge ---
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  property.displayName,
+                  style: GoogleFonts.poppins(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: primaryColor,
+                  ),
+                ),
+              ),
+              // ✅ --- THE VERIFIED BADGE ---
+              // Only shows if admin has verified the property
+              if (property.isVerified) ...[
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.verified,
+                  color: Colors.blue, // Standard "Verified" blue
+                  size: 28,
+                ),
+              ],
+            ],
           ),
+          
           const SizedBox(height: 8),
+          
+          // Location Row
           Row(
             children: [
               const Icon(Icons.location_on, color: Colors.grey, size: 18),
@@ -47,11 +73,14 @@ class PropertyHeaderCard extends StatelessWidget {
               ),
             ],
           ),
+          
           const SizedBox(height: 16),
+          
+          // Price Container
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFF004D40).withOpacity(0.1),
+              color: primaryColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -61,7 +90,7 @@ class PropertyHeaderCard extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF004D40),
+                    color: primaryColor,
                   ),
                 ),
                 Text(

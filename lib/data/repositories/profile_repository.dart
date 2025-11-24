@@ -420,4 +420,80 @@ class ProfileRepository {
       rethrow;
     }
   }
+
+  // ========================================
+  // ✅ ADMIN METHODS - Added for User Management
+  // ========================================
+
+  /// Fetch all users from Supabase profiles table (Admin only)
+  Future<List<UserProfile>> fetchAllUsers() async {
+    try {
+      final response = await _supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', ascending: false);
+
+      debugPrint('✅ Fetched ${response.length} users');
+      
+      return (response as List)
+          .map((userJson) => UserProfile.fromJson(userJson))
+          .toList();
+    } catch (e) {
+      debugPrint('❌ Error fetching all users: $e');
+      rethrow;
+    }
+  }
+
+  /// Fetch a single user profile by user_id (Admin only)
+  Future<UserProfile?> fetchUserById(String userId) async {
+    try {
+      final response = await _supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      if (response == null) {
+        debugPrint('⚠️ No profile found for user: $userId');
+        return null;
+      }
+
+      debugPrint('✅ Fetched user profile for: $userId');
+      return UserProfile.fromJson(response);
+    } catch (e) {
+      debugPrint('❌ Error fetching user by ID: $e');
+      rethrow;
+    }
+  }
+
+  /// Update user role (Admin only - use with caution)
+  Future<void> updateUserRole(String userId, String newRole) async {
+    try {
+      await _supabase
+          .from('profiles')
+          .update({'role': newRole})
+          .eq('user_id', userId);
+
+      debugPrint('✅ Updated user role to: $newRole for user: $userId');
+    } catch (e) {
+      debugPrint('❌ Error updating user role: $e');
+      rethrow;
+    }
+  }
+
+  /// Delete a user profile (Admin only - use with extreme caution)
+  /// Note: This only deletes the profile, not the auth user
+  Future<void> deleteUserProfile(String userId) async {
+    try {
+      await _supabase
+          .from('profiles')
+          .delete()
+          .eq('user_id', userId);
+
+      debugPrint('✅ Deleted user profile for: $userId');
+    } catch (e) {
+      debugPrint('❌ Error deleting user profile: $e');
+      rethrow;
+    }
+  }
 }

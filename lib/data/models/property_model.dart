@@ -7,7 +7,7 @@ class Property {
   final String? propertyType;
   final String? location;
   final double? price;
-  final String? area;
+  final String? area; // String? to match DB text type
   final int? bedrooms;
   final int? bathrooms;
   final bool? kitchen;
