@@ -218,6 +218,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         elevation: 0,
+        // ✅ --- ADDED centerTitle: true ---
+        centerTitle: true,
         title: Text(
           "Add New Property",
           style: GoogleFonts.poppins(

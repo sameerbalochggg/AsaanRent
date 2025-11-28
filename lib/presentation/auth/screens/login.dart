@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rent_application/core/images.dart';
-import 'package:rent_application/presentation/auth/screens/register.dart'; // Ensure path is correct
-import 'package:rent_application/presentation/auth/screens/forgot_password.dart'; // Ensure path is correct
+import 'package:rent_application/presentation/auth/screens/register.dart'; 
 
 // 🔹 Import your Home & Admin Pages
 import 'package:rent_application/presentation/home/screens/home_screen.dart';
@@ -10,7 +8,12 @@ import 'package:rent_application/presentation/admin/screens/admin_dashboard_scre
 
 // ✅ --- REPOSITORY IMPORTS ---
 import 'package:rent_application/data/repositories/auth_repository.dart';
-import 'package:rent_application/data/repositories/profile_repository.dart'; // Needed for role check
+import 'package:rent_application/data/repositories/profile_repository.dart';
+
+// ✅ --- WIDGET IMPORTS ---
+import 'package:rent_application/presentation/auth/widgets/login_header.dart';
+import 'package:rent_application/presentation/auth/widgets/login_form.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -28,7 +31,6 @@ class _LoginPageState extends State<LoginPage> {
   final AuthRepository _authRepository = AuthRepository();
   final ProfileRepository _profileRepository = ProfileRepository();
 
-  bool _obscurePassword = true;
   bool _isLoading = false;
 
   @override
@@ -106,201 +108,37 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ --- Get Theme Colors ---
     final theme = Theme.of(context);
     
     return Scaffold(
-      // ✅ Use theme's primary color
       backgroundColor: theme.primaryColor,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
             children: [
-              // Logo at top
-              Image.asset(
-                houseImg,
-                height: 110,
-              ),
-              const SizedBox(height: 15),
-
-              Text(
-                "Welcome To AssanRent",
-                style: GoogleFonts.poppins(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  // ✅ Use light color on dark background (Primary color is usually dark)
-                  color: Colors.white.withOpacity(0.9),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "Login to continue",
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  // ✅ Use light color on dark background
-                  color: Colors.white.withOpacity(0.7),
-                ),
-              ),
+              // ✅ 1. Header Widget
+              const LoginHeader(),
+              
               const SizedBox(height: 30),
 
-              // Login Form Card
-              Card(
-                elevation: 6,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                // ✅ Use theme's card color
-                color: theme.cardColor,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        // Email field
-                        TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            labelText: "Email",
-                            prefixIcon: Icon(Icons.email_outlined, color: theme.primaryColor),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: theme.primaryColor, width: 2),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return "Please enter your email";
-                            } else if (!value.contains("@")) {
-                              return "Enter a valid email address";
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Password field
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: _obscurePassword,
-                          decoration: InputDecoration(
-                            labelText: "Password",
-                            prefixIcon: Icon(Icons.lock_outline, color: theme.primaryColor),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
-                                color: Colors.grey,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: theme.primaryColor, width: 2),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return "Please enter your password";
-                            } else if (value.length < 8) {
-                              return "Password must be at least 8 characters";
-                            } else if (!RegExp(
-                                    r'^(?=.*[0-9])(?=.*[!@#\$%^&*(),.?":{}|<>]).{8,}$')
-                                .hasMatch(value)) {
-                              return "Password must include a number & special character";
-                            }
-                            return null;
-                          },
-                        ),
-
-                        // 🔹 Forgot Password navigation
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const ForgotPasswordPage(),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              "Forgot Password?",
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                // ✅ Use theme's primary color
-                                color: theme.primaryColor,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 15),
-
-                        // Login button
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              // ✅ Use theme's primary color
-                              backgroundColor: theme.primaryColor,
-                              foregroundColor: Colors.white, // Text on button
-                            ),
-                            onPressed: _isLoading ? null : _loginUser,
-                            child: _isLoading
-                                ? const SizedBox(
-                                    height: 24,
-                                    width: 24,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2.5,
-                                    ),
-                                  )
-                                : Text(
-                                    "Login",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              // ✅ 2. Form Widget
+              LoginForm(
+                formKey: _formKey,
+                emailController: _emailController,
+                passwordController: _passwordController,
+                isLoading: _isLoading,
+                onLogin: _loginUser,
               ),
+              
               const SizedBox(height: 20),
 
-              // Register link
+              // ✅ 3. Register Link (Simple enough to keep here)
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     "Don't have an account?",
-                    // ✅ Use light color on dark background
                     style: GoogleFonts.poppins(fontSize: 14, color: Colors.white70),
                   ),
                   TextButton(
@@ -315,7 +153,6 @@ class _LoginPageState extends State<LoginPage> {
                       "Register",
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
-                        // ✅ Use light color on dark background
                         color: Colors.white,
                       ),
                     ),

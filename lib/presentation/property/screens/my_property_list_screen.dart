@@ -85,8 +85,18 @@ class _MyPropertyListPageState extends State<MyPropertyListPage> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title:
-            const Text('My Properties'),
+        elevation: 0,
+        // ✅ --- ADDED centerTitle: true ---
+        centerTitle: true,
+        title: Text(
+          "My Properties",
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: const Color(0xFF004D40),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: isLoading
           ? Center(

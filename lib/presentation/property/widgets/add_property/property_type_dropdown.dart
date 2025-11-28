@@ -28,7 +28,7 @@ class PropertyTypeDropdown extends StatelessWidget {
         value: value,
         decoration: _inputDecoration("Select Property Type", icon: Icons.home),
         isExpanded: true,
-        items: ["House", "Shop", "Office", "Flat", "Apartment"]
+        items: ["House", "Shop", "Office", "Flat", "Apartment", "Room"]
             .map((e) => DropdownMenuItem(value: e, child: Text(e)))
             .toList(),
         onChanged: onChanged,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rent_application/data/models/property_model.dart';
 import 'package:rent_application/data/repositories/property_repository.dart';
+import 'package:rent_application/core/utils/error_handler.dart'; // ✅ Import ErrorHandler
 
 class PropertyProvider with ChangeNotifier {
   final PropertyRepository _propertyRepo = PropertyRepository();
@@ -8,23 +9,26 @@ class PropertyProvider with ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  String? _errorMessage; // ✅ Added error state
+  String? get errorMessage => _errorMessage;
+
   List<Property> _availableProperties = [];
   List<Property> get availableProperties => _availableProperties;
 
-  // This is the function all screens will call to get or refresh data
   Future<void> fetchAvailableProperties() async {
     _isLoading = true;
-    notifyListeners(); // Tell listeners we are loading
+    _errorMessage = null; // Reset error
+    notifyListeners();
 
     try {
-      // Get only available properties from the repository
       _availableProperties = await _propertyRepo.fetchAllAvailableProperties();
     } catch (e) {
+      // ✅ Convert raw error to friendly message
+      _errorMessage = ErrorHandler.getMessage(e); 
       debugPrint("Error in PropertyProvider: $e");
-      // You could store an error message here if you want
     } finally {
       _isLoading = false;
-      notifyListeners(); // Tell listeners we are done loading (and send data)
+      notifyListeners();
     }
   }
 }

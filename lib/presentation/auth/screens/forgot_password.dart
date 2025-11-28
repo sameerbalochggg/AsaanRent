@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart'; // Still needed for AuthException
-import 'package:rent_application/core/images.dart';
-import 'reset_password.dart';
-
-// ✅ --- REFACTORED IMPORTS ---
+import 'package:rent_application/core/utils/error_handler.dart'; // ✅ Import ErrorHandler
 import 'package:rent_application/data/repositories/auth_repository.dart';
-// ❌ --- REMOVED unused core/colors.dart ---
+import 'package:rent_application/presentation/auth/screens/reset_password.dart';
+
+// ✅ --- Import Widgets ---
+import 'package:rent_application/presentation/auth/widgets/forgot_password_header.dart';
+import 'package:rent_application/presentation/auth/widgets/forgot_password_form.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -21,12 +20,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
 
-  // ✅ --- Use Repository ---
   final AuthRepository _authRepository = AuthRepository();
 
   bool _loading = false;
   bool _otpSent = false;
-
   int _secondsRemaining = 0;
   Timer? _timer;
 
@@ -40,7 +37,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   void _startOtpTimer() {
     setState(() => _secondsRemaining = 90);
-
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0) {
@@ -52,7 +48,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     });
   }
 
-  /// ✅ --- REFACTORED: Uses AuthRepository ---
   Future<void> _sendOtp() async {
     if (_emailController.text.isEmpty || !_emailController.text.contains("@")) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,8 +59,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     setState(() => _loading = true);
     try {
       final email = _emailController.text.trim();
-      
-      // ✅ Call Repository
       await _authRepository.sendPasswordResetOtp(email);
 
       setState(() => _otpSent = true);
@@ -76,29 +69,15 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       );
 
       _startOtpTimer();
-    } on AuthException catch (error) {
-      String errorMessage = "Something went wrong. Please try again.";
-      final err = error.message.toLowerCase();
-
-      if (err.contains("not found") || err.contains("invalid login")) {
-        errorMessage = "This email is not registered. Please sign up first.";
-      } else if (err.contains("network") || err.contains("socket")) {
-        errorMessage = "Unable to connect. Please check your internet connection.";
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Unexpected error. Try again.")),
-      );
+      if (!mounted) return;
+      // ✅ Use centralized ErrorHandler
+      ErrorHandler.showErrorSnackBar(context, e);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-  /// ✅ --- REFACTORED: Uses AuthRepository ---
   Future<void> _verifyOtp() async {
     if (_otpController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -112,7 +91,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       final email = _emailController.text.trim();
       final otp = _otpController.text.trim();
 
-      // ✅ Call Repository
       await _authRepository.verifyPasswordResetOtp(email, otp);
 
       if (!mounted) return;
@@ -127,179 +105,47 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
       );
       
-    } on AuthException catch (error) {
-      String errorMessage = "Something went wrong. Please try again.";
-      final err = error.message.toLowerCase();
-
-      if (err.contains("invalid") || err.contains("expired")) {
-        errorMessage = "The OTP you entered is invalid or expired. Please request a new one.";
-      } else if (err.contains("network") || err.contains("socket")) {
-        errorMessage = "Unable to connect. Please check your internet connection.";
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Unexpected error. Try again.")),
-      );
+      if (!mounted) return;
+      // ✅ Use centralized ErrorHandler
+      ErrorHandler.showErrorSnackBar(context, e);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    // ✅ --- Get Theme Colors ---
     final theme = Theme.of(context);
     
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor, // ✅ Theme-aware
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
-          "Forgot Password",
-        ),
-        // ✅ Theme-aware (colors are inherited from main.dart)
+        elevation: 0,
+        centerTitle: true,
+        title: const Text("Forgot Password"),
+        // AppBar colors handled by main.dart theme
       ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
             children: [
-              // Logo
-              Image.asset(
-                houseImg,
-                height: 180,
-              ),
-              const SizedBox(height: 50),
-
-              Text(
-                "Enter your registered email below. We'll send you an OTP.",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: theme.textTheme.bodySmall?.color, // ✅ Theme-aware
-                ),
-              ),
+              // ✅ 1. Header
+              const ForgotPasswordHeader(),
+              
               const SizedBox(height: 30),
 
-              Card(
-                elevation: 6,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                color: theme.cardColor, // ✅ Theme-aware
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: _emailController,
-                                keyboardType: TextInputType.emailAddress,
-                                decoration: InputDecoration(
-                                  labelText: "Email",
-                                  prefixIcon: const Icon(Icons.email_outlined),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return "Please enter your email";
-                                  } else if (!value.contains("@")) {
-                                    return "Enter a valid email address";
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            _secondsRemaining > 0
-                                ? Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 10),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[300],
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      "$_secondsRemaining s",
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: const Color.fromARGB(255, 101, 90, 90),
-                                      ),
-                                    ),
-                                  )
-                                : IconButton(
-                                    icon: Icon(Icons.send,
-                                        color: theme.primaryColor), // ✅ Theme-aware
-                                    onPressed: _loading ? null : _sendOtp,
-                                  ),
-                          ],
-                        ),
-                        const SizedBox(height: 25),
-
-                        if (_otpSent) ...[
-                          TextFormField(
-                            controller: _otpController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              labelText: "Enter OTP",
-                              prefixIcon: const Icon(Icons.lock_outline),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return "Please enter the OTP";
-                              } else if (value.length < 6) {
-                                return "OTP must be at least 6 digits";
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 25),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                backgroundColor: theme.primaryColor, // ✅ Theme-aware
-                              ),
-                              onPressed: _loading ? null : _verifyOtp,
-                              child: _loading
-                                  ? const SizedBox(
-                                      height: 24,
-                                      width: 24,
-                                      child: CircularProgressIndicator(color: Colors.white),
-                                    )
-                                  : Text(
-                                      "Verify OTP",
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
+              // ✅ 2. Form
+              ForgotPasswordForm(
+                formKey: _formKey,
+                emailController: _emailController,
+                otpController: _otpController,
+                isLoading: _loading,
+                otpSent: _otpSent,
+                secondsRemaining: _secondsRemaining,
+                onSendOtp: _sendOtp,
+                onVerifyOtp: _verifyOtp,
               ),
             ],
           ),

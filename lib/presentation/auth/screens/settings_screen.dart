@@ -4,10 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:rent_application/presentation/providers/theme_provider.dart'; 
 import 'package:rent_application/core/theme.dart'; 
 
-// ❌ --- REMOVED OLD COLOR CONSTANTS ---
-// const kPrimaryColor = Color(0xFF004D40);
-// const kScaffoldBgColor = Color(0xFFF8F9FA);
-// const kDestructiveColor = Colors.red;
+// ✅ --- Added Import for Forgot Password Page ---
+import 'package:rent_application/presentation/auth/screens/forgot_password.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -27,6 +25,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
+        elevation: 0,
+        // ✅ --- ADDED centerTitle: true ---
+        centerTitle: true,
         title: Text(
           "Settings",
           style: GoogleFonts.poppins(
@@ -34,9 +35,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: kPrimaryColor, // This comes from theme.dart
+        backgroundColor: kPrimaryColor, // From theme.dart
         foregroundColor: Colors.white,
-        elevation: 1,
       ),
       body: ListView(
         children: [
@@ -48,8 +48,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: "Change Password",
             subtitle: "Update your login password",
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Navigate to Change Password Screen')),
+              // ✅ --- Navigate to ForgotPasswordPage ---
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ForgotPasswordPage(),
+                ),
               );
             },
           ),
@@ -77,7 +81,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               setState(() {
                 _notificationsOn = newValue;
               });
-              // TODO: Save this preference to the device
             },
           ),
           _buildSwitchItem(
@@ -94,7 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // Helper widget for section headers (e.g., "Account")
+  // Helper widget for section headers
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
@@ -110,7 +113,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // Helper widget for standard settings items (like "Change Password")
+  // Helper widget for standard settings items
   Widget _buildSettingItem(
     BuildContext context, {
     required IconData icon,
@@ -119,12 +122,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required VoidCallback onTap,
     bool isDestructive = false,
   }) {
-    // ✅ --- This now correctly reads kDestructiveColor from theme.dart ---
-    final color = isDestructive ? kDestructiveColor : Theme.of(context).textTheme.bodyLarge?.color;
+    final theme = Theme.of(context);
+    final color = isDestructive ? kDestructiveColor : theme.textTheme.bodyLarge?.color;
     final iconColor = isDestructive ? kDestructiveColor : Colors.grey[700];
 
     return Container(
-      color: Theme.of(context).cardColor,
+      color: theme.cardColor,
       child: ListTile(
         leading: Icon(icon, color: iconColor),
         title: Text(
@@ -153,8 +156,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
+    final theme = Theme.of(context);
     return Container(
-      color: Theme.of(context).cardColor,
+      color: theme.cardColor,
       child: ListTile(
         leading: Icon(icon, color: Colors.grey[700]),
         title: Text(
@@ -162,6 +166,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w500,
             fontSize: 16,
+            // ✅ Ensure text color adapts to theme
+            color: theme.textTheme.bodyLarge?.color, 
           ),
         ),
         subtitle: Text(

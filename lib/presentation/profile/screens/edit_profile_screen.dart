@@ -179,6 +179,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        elevation: 0,
+        // ✅ --- ADDED centerTitle: true ---
+        centerTitle: true,
         title: Text(
           "Edit Profile",
           style: GoogleFonts.poppins(

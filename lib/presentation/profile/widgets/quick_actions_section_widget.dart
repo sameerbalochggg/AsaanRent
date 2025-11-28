@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+// ✅ --- Navigation Imports ---
+import 'package:rent_application/presentation/property/screens/my_property_list_screen.dart';
+import 'package:rent_application/presentation/home/screens/favourite_tab_screen.dart';
+import 'package:rent_application/presentation/auth/screens/settings_screen.dart';
+
 class QuickActionsSectionWidget extends StatelessWidget {
   const QuickActionsSectionWidget({super.key});
 
@@ -28,7 +33,13 @@ class QuickActionsSectionWidget extends StatelessWidget {
               icon: FontAwesomeIcons.houseUser,
               label: "My Listings",
               onTap: () {
-                /* TODO: Navigate */
+                // ✅ Navigate to My Listings
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MyPropertyListPage(),
+                  ),
+                );
               },
             ),
             const SizedBox(width: 8),
@@ -36,23 +47,28 @@ class QuickActionsSectionWidget extends StatelessWidget {
               icon: FontAwesomeIcons.heart,
               label: "Favorites",
               onTap: () {
-                /* TODO: Navigate */
+                // ✅ Navigate to Favorites
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FavoritesTabScreen(),
+                  ),
+                );
               },
             ),
-            const SizedBox(width: 8),
-            _QuickActionCard(
-              icon: FontAwesomeIcons.creditCard,
-              label: "Payments",
-              onTap: () {
-                /* TODO: Navigate */
-              },
-            ),
+            // ❌ --- REMOVED Payments Button ---
             const SizedBox(width: 8),
             _QuickActionCard(
               icon: FontAwesomeIcons.gear,
               label: "Settings",
               onTap: () {
-                /* TODO: Navigate */
+                // ✅ Navigate to Settings
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  ),
+                );
               },
             ),
           ],

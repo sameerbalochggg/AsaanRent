@@ -16,14 +16,37 @@ class CustomBottomNavBar extends StatelessWidget {
       currentIndex: currentIndex,
       onTap: onTap,
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: const Color(0xFF004D40), // Your kPrimaryColor
+      selectedItemColor: const Color(0xFF004D40), 
       unselectedItemColor: Colors.grey,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-        BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
+
+      items: [
         BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border), label: "Favorite"),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+          icon: currentIndex == 0
+              ? const Icon(Icons.home)           // FILLED
+              : const Icon(Icons.home_outlined), // OUTLINE
+          label: "Home",
+        ),
+
+        BottomNavigationBarItem(
+          icon: currentIndex == 1
+              ? const Icon(Icons.search)         // FILLED
+              : const Icon(Icons.search_outlined), // OUTLINE
+          label: "Search",
+        ),
+
+        BottomNavigationBarItem(
+          icon: currentIndex == 2
+              ? const Icon(Icons.favorite)       // FILLED
+              : const Icon(Icons.favorite_border), // OUTLINE
+          label: "Favorite",
+        ),
+
+        BottomNavigationBarItem(
+          icon: currentIndex == 3
+              ? const Icon(Icons.person)         // FILLED
+              : const Icon(Icons.person_outline), // OUTLINE
+          label: "Profile",
+        ),
       ],
     );
   }
