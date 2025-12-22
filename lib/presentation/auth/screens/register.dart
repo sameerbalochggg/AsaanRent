@@ -6,6 +6,9 @@ import 'package:rent_application/data/repositories/auth_repository.dart';
 import 'package:rent_application/presentation/auth/widgets/register_header.dart';
 import 'package:rent_application/presentation/auth/widgets/register_form.dart';
 
+// ✅ --- ERROR HANDLER IMPORT ---
+import 'package:rent_application/core/utils/error_handler.dart';
+
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -32,6 +35,7 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
+  // ✅ UPDATED: Register with ErrorHandler
   Future<void> _registerUser() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -48,35 +52,18 @@ class _RegisterPageState extends State<RegisterPage> {
 
       if (!mounted) return;
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("🎉 Registration Successful! Please check your email."),
-          backgroundColor: Colors.green,
-        ),
+      // ✅ Use ErrorHandler's success SnackBar
+      ErrorHandler.showSuccessSnackBar(
+        context,
+        "🎉 Registration Successful! Please check your email.",
       );
+      
       Navigator.pop(context); // Back to login
 
-    } catch (e) {
-      String errorMessage = "Something went wrong. Please try again.";
-      final errorStr = e.toString().toLowerCase();
-      
-      if (errorStr.contains("email") && errorStr.contains("exists")) {
-        errorMessage = "This email is already registered. Please login.";
-      } else if (errorStr.contains("invalid email")) {
-        errorMessage = "Please enter a valid email address.";
-      } else if (errorStr.contains("password")) {
-        errorMessage = "Password is too weak. Try a stronger one.";
-      } else if (errorStr.contains("network") || errorStr.contains("socket")) {
-        errorMessage = "Unable to connect. Please check your internet.";
-      }
-
+    } catch (error) {
+      // ✅ USE ERROR HANDLER instead of manual error checking
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
+      ErrorHandler.showErrorSnackBar(context, error);
     } finally {
       if (mounted) {
         setState(() {

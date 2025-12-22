@@ -3,9 +3,15 @@ import 'package:rent_application/data/models/property_model.dart';
 import 'package:rent_application/data/models/report_model.dart'; // ✅ Added Import for Report
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+// ✅ --- Import Notification Repository ---
+import 'package:rent_application/data/repositories/notification_repository.dart';
+
 final _supabase = Supabase.instance.client;
 
 class PropertyRepository {
+  // ✅ --- Create instance of NotificationRepository ---
+  final NotificationRepository _notificationRepo = NotificationRepository();
+
   /// Fetches all *available* properties for the HomePage.
   Future<List<Property>> fetchAllAvailableProperties() async {
     try {
@@ -38,7 +44,7 @@ class PropertyRepository {
       final response = await _supabase
           .from('properties')
           .select()
-          .filter('id', 'in', ids); // ✅ Corrected syntax
+          .filter('id', 'in', ids); 
       return (response as List).map((json) => Property.fromJson(json)).toList();
     } catch (e) {
       debugPrint("Error in getPropertiesByIds: $e");
@@ -46,7 +52,7 @@ class PropertyRepository {
     }
   }
 
-  /// Fetches all properties for a specific user.
+  /// Fetches all properties for a specific user (Current User).
   Future<List<Property>> fetchUserProperties() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
@@ -64,7 +70,8 @@ class PropertyRepository {
     }
   }
 
-  /// ✅ NEW: Fetch all properties posted by a specific user (by user_id) - For Admin
+  // ✅ --- MISSING METHOD ADDED HERE ---
+  /// Fetches all properties for a specific user ID (For Admin View).
   Future<List<Property>> fetchPropertiesByUserId(String userId) async {
     try {
       final response = await _supabase
@@ -72,13 +79,10 @@ class PropertyRepository {
           .select('*')
           .eq('owner_id', userId)
           .order('created_at', ascending: false);
-
-      debugPrint('✅ Fetched ${response.length} properties for user: $userId');
-
       return (response as List).map((json) => Property.fromJson(json)).toList();
     } catch (e) {
-      debugPrint('❌ Error fetching user properties: $e');
-      throw Exception('Failed to fetch user properties: $e');
+      debugPrint("Error fetching properties by user ID: $e");
+      throw Exception('Failed to fetch properties for user: $userId');
     }
   }
 
@@ -182,13 +186,26 @@ class PropertyRepository {
     }
   }
 
-  // ✅ --- ADMIN: Verify or Unverify a property ---
+  // ✅ --- ADMIN: Verify or Unverify a property + Send Notification ---
   Future<void> updateVerificationStatus(String propertyId, bool isVerified) async {
     try {
+      // 1. Update property status
       await _supabase
           .from('properties')
           .update({'is_verified': isVerified})
           .eq('id', propertyId);
+
+      // 2. Fetch property details to get owner ID and title
+      final property = await fetchPropertyById(propertyId);
+      
+      // 3. Send Notification to the Owner if verified
+      if (isVerified && property.ownerId != null) {
+         await _notificationRepo.sendVerificationNotification(
+           property.ownerId!, 
+           property.displayName
+         );
+      }
+      
     } catch (e) {
       throw Exception('Failed to update verification: $e');
     }

@@ -30,6 +30,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   Future<void> _loadUserProperties() async {
     setState(() => _isLoading = true);
     try {
+      // The userId passed in user.userId is the UUID from auth.users which matches owner_id in properties
       final properties = await _propertyRepo.fetchPropertiesByUserId(widget.user.userId);
       if (mounted) {
         setState(() {
@@ -72,7 +73,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
           "User Details", 
           style: GoogleFonts.poppins(fontWeight: FontWeight.bold)
         ),
-        backgroundColor: Colors.red[800],
+        backgroundColor: Colors.red[800], // Admin specific color
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -95,7 +96,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
               child: Column(
                 children: [
                   // Avatar
-                  widget.user.avatarUrl != null
+                  widget.user.avatarUrl != null && widget.user.avatarUrl!.isNotEmpty
                       ? CircleAvatar(
                           radius: 50,
                           backgroundImage: NetworkImage(widget.user.avatarUrl!),

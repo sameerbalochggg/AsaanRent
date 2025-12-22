@@ -12,6 +12,7 @@ import 'package:rent_application/presentation/property/screens/my_property_list_
 import 'package:rent_application/presentation/property/screens/add_property_screen.dart';
 import 'package:rent_application/presentation/profile/screens/profile_screen.dart';
 import 'package:rent_application/presentation/auth/screens/settings_screen.dart';
+import 'package:rent_application/presentation/home/screens/help_and_support_screen.dart';
 
 // ✅ Provider Import
 import 'package:rent_application/presentation/providers/profile_provider.dart';
@@ -23,10 +24,7 @@ class AppDrawer extends StatelessWidget {
   // Helper method for navigation
   void _navigateTo(BuildContext context, Widget screen) {
     Navigator.pop(context); // Close the drawer
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => screen),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
   }
 
   Future<void> _showLogoutDialog(BuildContext context) async {
@@ -39,8 +37,10 @@ class AppDrawer extends StatelessWidget {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Are you sure you want to logout?',
-                    style: GoogleFonts.poppins()),
+                Text(
+                  'Are you sure you want to logout?',
+                  style: GoogleFonts.poppins(),
+                ),
               ],
             ),
           ),
@@ -52,8 +52,10 @@ class AppDrawer extends StatelessWidget {
               },
             ),
             TextButton(
-              child: Text('Logout',
-                  style: GoogleFonts.poppins(color: Colors.red)),
+              child: Text(
+                'Logout',
+                style: GoogleFonts.poppins(color: Colors.red),
+              ),
               onPressed: () async {
                 Navigator.of(dialogContext).pop(); // Close dialog
 
@@ -62,16 +64,16 @@ class AppDrawer extends StatelessWidget {
 
                   if (!context.mounted) return;
                   Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(
-                        builder: (context) => const LoginPage()),
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
                     (Route<dynamic> route) => false,
                   );
                 } catch (e) {
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                        content: Text("Logout failed: $e"),
-                        backgroundColor: Colors.red),
+                      content: Text("Logout failed: $e"),
+                      backgroundColor: Colors.red,
+                    ),
                   );
                 }
               },
@@ -105,21 +107,21 @@ class AppDrawer extends StatelessWidget {
         children: [
           // ✅ Separated Header to prevent unnecessary rebuilds
           const _DrawerHeader(),
-          
+
           _DrawerTile(
             icon: Icons.home_outlined,
             title: "Home",
             iconColor: iconColor,
             onTap: () => Navigator.pop(context),
           ),
-          
+
           _DrawerTile(
             icon: Icons.person_outline,
             title: "My Profile",
             iconColor: iconColor,
             onTap: () => _navigateTo(context, const ProfileScreen()),
           ),
-          
+
           _DrawerTile(
             icon: Icons.favorite_border,
             title: "My Favorites",
@@ -129,11 +131,11 @@ class AppDrawer extends StatelessWidget {
               Navigator.pop(context);
             },
           ),
-          
+
           const Divider(),
-          
+
           _DrawerSectionHeader(text: "My Rentals"),
-          
+
           _DrawerTile(
             icon: Icons.add_business_outlined,
             title: "My Property List",
@@ -149,7 +151,7 @@ class AppDrawer extends StatelessWidget {
               onPropertyAdded();
             },
           ),
-          
+
           _DrawerTile(
             icon: Icons.add_business_outlined,
             title: "Add New Property",
@@ -167,26 +169,33 @@ class AppDrawer extends StatelessWidget {
               }
             },
           ),
-          
+
           const Divider(),
-          
+
           _DrawerTile(
             icon: Icons.settings_outlined,
             title: "Settings",
             iconColor: iconColor,
             onTap: () => _navigateTo(context, const SettingsScreen()),
           ),
-          
+
           _DrawerTile(
             icon: Icons.support_agent_outlined,
             title: "Help & Support",
             iconColor: iconColor,
             onTap: () {
-              Navigator.pop(context);
-              debugPrint("Navigate to Help & Support");
+              Navigator.pop(context); // Close drawer
+
+              // Navigate to Help & Support screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const HelpAndSupportScreen(),
+                ),
+              );
             },
           ),
-          
+
           _DrawerTile(
             icon: Icons.info_outline,
             title: "About App",
@@ -197,8 +206,11 @@ class AppDrawer extends StatelessWidget {
                 context: context,
                 applicationName: "AsaanRent",
                 applicationVersion: "1.0.0",
-                applicationIcon: Icon(Icons.house,
-                    size: 40, color: theme.primaryColor),
+                applicationIcon: Icon(
+                  Icons.house,
+                  size: 40,
+                  color: theme.primaryColor,
+                ),
                 applicationLegalese: "© 2025 AsaanRent. All rights reserved.",
                 children: [
                   Padding(
@@ -212,16 +224,16 @@ class AppDrawer extends StatelessWidget {
               );
             },
           ),
-          
+
           _DrawerTile(
             icon: Icons.share_outlined,
             title: "Share App",
             iconColor: iconColor,
             onTap: () => _shareApp(context),
           ),
-          
+
           const Divider(),
-          
+
           _DrawerTile(
             icon: Icons.logout,
             title: "Logout",
@@ -243,7 +255,7 @@ class _DrawerHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     // ✅ Use Selector to only rebuild when specific fields change
     return Selector<ProfileProvider, _ProfileData>(
       selector: (_, provider) => _ProfileData(
@@ -254,9 +266,7 @@ class _DrawerHeader extends StatelessWidget {
       ),
       builder: (context, profileData, child) {
         return UserAccountsDrawerHeader(
-          decoration: BoxDecoration(
-            color: theme.primaryColor,
-          ),
+          decoration: BoxDecoration(color: theme.primaryColor),
           accountName: Text(
             profileData.isLoading ? "Loading..." : profileData.displayName,
             style: GoogleFonts.poppins(
@@ -270,17 +280,15 @@ class _DrawerHeader extends StatelessWidget {
           ),
           currentAccountPicture: CircleAvatar(
             backgroundColor: Colors.white,
-            backgroundImage: (profileData.avatarUrl != null &&
+            backgroundImage:
+                (profileData.avatarUrl != null &&
                     profileData.avatarUrl!.isNotEmpty)
                 ? NetworkImage(profileData.avatarUrl!)
                 : null,
-            child: (profileData.avatarUrl == null ||
+            child:
+                (profileData.avatarUrl == null ||
                     profileData.avatarUrl!.isEmpty)
-                ? Icon(
-                    Icons.person,
-                    size: 40,
-                    color: theme.primaryColor,
-                  )
+                ? Icon(Icons.person, size: 40, color: theme.primaryColor)
                 : null,
           ),
         );
@@ -343,12 +351,7 @@ class _DrawerTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: Icon(icon, color: iconColor),
-      title: Text(
-        title,
-        style: GoogleFonts.poppins(
-          color: titleColor,
-        ),
-      ),
+      title: Text(title, style: GoogleFonts.poppins(color: titleColor)),
       onTap: onTap,
     );
   }

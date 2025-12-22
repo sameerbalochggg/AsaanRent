@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:rent_application/core/utils/error_handler.dart'; // ✅ Import ErrorHandler
+import 'package:rent_application/core/utils/error_handler.dart';
 import 'package:rent_application/data/repositories/auth_repository.dart';
 import 'package:rent_application/presentation/auth/screens/reset_password.dart';
 
@@ -48,15 +48,20 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     });
   }
 
+  // ✅ UPDATED: Send OTP with enhanced ErrorHandler usage
   Future<void> _sendOtp() async {
+    // Validation check
     if (_emailController.text.isEmpty || !_emailController.text.contains("@")) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a valid email")),
+      // ✅ Use ErrorHandler's warning SnackBar
+      ErrorHandler.showWarningSnackBar(
+        context,
+        "Please enter a valid email address",
       );
       return;
     }
 
     setState(() => _loading = true);
+    
     try {
       final email = _emailController.text.trim();
       await _authRepository.sendPasswordResetOtp(email);
@@ -64,29 +69,48 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       setState(() => _otpSent = true);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("OTP sent to your email.")),
+      
+      // ✅ Use ErrorHandler's success SnackBar
+      ErrorHandler.showSuccessSnackBar(
+        context,
+        "OTP sent to your email. Please check your inbox.",
       );
 
       _startOtpTimer();
-    } catch (e) {
+    } catch (error) {
+      // ✅ Use ErrorHandler for consistent error display
+      ErrorHandler.logError(error); // Log for debugging
+      
       if (!mounted) return;
-      // ✅ Use centralized ErrorHandler
-      ErrorHandler.showErrorSnackBar(context, e);
+      ErrorHandler.showErrorSnackBar(context, error);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
+  // ✅ UPDATED: Verify OTP with enhanced ErrorHandler usage
   Future<void> _verifyOtp() async {
+    // Validation check
     if (_otpController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Enter OTP code")),
+      // ✅ Use ErrorHandler's warning SnackBar
+      ErrorHandler.showWarningSnackBar(
+        context,
+        "Please enter the OTP code",
+      );
+      return;
+    }
+
+    // Check OTP length (usually 6 digits)
+    if (_otpController.text.trim().length < 6) {
+      ErrorHandler.showWarningSnackBar(
+        context,
+        "OTP code must be 6 digits",
       );
       return;
     }
 
     setState(() => _loading = true);
+    
     try {
       final email = _emailController.text.trim();
       final otp = _otpController.text.trim();
@@ -94,10 +118,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       await _authRepository.verifyPasswordResetOtp(email, otp);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("OTP verified successfully!")),
+      
+      // ✅ Use ErrorHandler's success SnackBar
+      ErrorHandler.showSuccessSnackBar(
+        context,
+        "OTP verified successfully!",
       );
 
+      // Navigate to reset password screen
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -105,10 +133,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
       );
       
-    } catch (e) {
+    } catch (error) {
+      // ✅ Use ErrorHandler for consistent error display
+      ErrorHandler.logError(error); // Log for debugging
+      
       if (!mounted) return;
-      // ✅ Use centralized ErrorHandler
-      ErrorHandler.showErrorSnackBar(context, e);
+      ErrorHandler.showErrorSnackBar(context, error);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -124,7 +154,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         elevation: 0,
         centerTitle: true,
         title: const Text("Forgot Password"),
-        // AppBar colors handled by main.dart theme
       ),
       body: Center(
         child: SingleChildScrollView(

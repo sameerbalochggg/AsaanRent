@@ -8,6 +8,7 @@ import 'package:rent_application/presentation/profile/screens/profile_screen.dar
 import 'package:rent_application/presentation/home/screens/search_screen.dart';
 import 'package:rent_application/presentation/property/screens/property_details_screen.dart';
 
+// --- Import your widgets ---
 import 'package:rent_application/presentation/home/widgets/app_drawer.dart';
 import 'package:rent_application/presentation/home/widgets/featured_carousel.dart';
 import 'package:rent_application/presentation/home/widgets/category_chip.dart';
@@ -16,6 +17,10 @@ import 'package:rent_application/presentation/widgets/custom_bottom_nav_bar.dart
 
 // ✅ Import Error Widget
 import 'package:rent_application/presentation/widgets/error_view.dart';
+
+// ✅ Import Notification Provider & Screen
+import 'package:rent_application/presentation/providers/notification_provider.dart';
+import 'package:rent_application/presentation/home/screens/notifications_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -37,7 +42,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _loadData() {
+    // Fetch properties
     Provider.of<PropertyProvider>(context, listen: false).fetchAvailableProperties();
+    // ✅ Fetch notifications
+    Provider.of<NotificationProvider>(context, listen: false).loadNotifications();
   }
 
   void _filterByCategory(String category) {
@@ -76,15 +84,54 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final propertyProvider = context.watch<PropertyProvider>();
+    // ✅ Listen to NotificationProvider for unread count
+    final notificationProvider = context.watch<NotificationProvider>();
     
     final bool isLoading = propertyProvider.isLoading;
-    final String? errorMessage = propertyProvider.errorMessage; // ✅ Get error
+    final String? errorMessage = propertyProvider.errorMessage;
     final List<Property> allProperties = propertyProvider.availableProperties;
 
     // ✅ --- SHOW ERROR VIEW ---
     if (errorMessage != null && allProperties.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text("AsaanRent"), centerTitle: true),
+        appBar: AppBar(
+          title: const Text("AsaanRent"), 
+          centerTitle: true,
+          actions: [
+            // Keep notifications accessible even in error state
+            Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_none),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                  );
+                },
+              ),
+              if (notificationProvider.unreadCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                    child: Text(
+                      '${notificationProvider.unreadCount}',
+                      style: const TextStyle(color: Colors.white, fontSize: 10),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                )
+            ],
+          ),
+          ],
+        ),
         drawer: AppDrawer(onPropertyAdded: _loadData),
         body: ErrorView(
           message: errorMessage,
@@ -110,7 +157,41 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         centerTitle: true,
         title: Text("AsaanRent", style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-        actions: [IconButton(icon: const Icon(Icons.notifications_none), onPressed: () {})],
+        actions: [
+          // ✅ UPDATED NOTIFICATION BELL WITH BADGE
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_none),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                  );
+                },
+              ),
+              // Show Red Dot if unread count > 0
+              if (notificationProvider.unreadCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                    child: Text(
+                      '${notificationProvider.unreadCount}',
+                      style: const TextStyle(color: Colors.white, fontSize: 10),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                )
+            ],
+          ),
+        ],
       ),
       body: isLoading && allProperties.isEmpty
           ? Center(child: CircularProgressIndicator(color: theme.primaryColor))
@@ -138,7 +219,6 @@ class _HomePageState extends State<HomePage> {
                             CategoryChip(title: "Flat", icon: Icons.apartment, isSelected: _selectedCategory == "Flat", onTap: () => _filterByCategory("Flat")),
                             CategoryChip(title: "Shop", icon: Icons.store, isSelected: _selectedCategory == "Shop", onTap: () => _filterByCategory("Shop")),
                             CategoryChip(title: "Office", icon: Icons.business, isSelected: _selectedCategory == "Office", onTap: () => _filterByCategory("Office")),
-                            CategoryChip(title: "Room", icon: Icons.room, isSelected: _selectedCategory == "Room", onTap: () => _filterByCategory("Room")),
                           ],
                         ),
                       ),

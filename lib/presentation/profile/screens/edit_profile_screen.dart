@@ -12,6 +12,9 @@ import 'package:rent_application/presentation/profile/widgets/edit_profile_avata
 import 'package:rent_application/presentation/profile/widgets/edit_profile_form_widget.dart';
 import 'package:rent_application/presentation/profile/widgets/save_button_widget.dart';
 
+// ✅ --- ERROR HANDLER IMPORT ---
+import 'package:rent_application/core/utils/error_handler.dart';
+
 const kSecondaryColor = Colors.white;
 
 class EditProfileScreen extends StatefulWidget {
@@ -87,15 +90,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  // ✅ UPDATED: Pick image with error handling
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-    if (pickedFile != null && mounted) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-        _profile = _profile.copyWith(avatarUrl: null);
-      });
+      if (pickedFile != null && mounted) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+          _profile = _profile.copyWith(avatarUrl: null);
+        });
+      }
+    } catch (error) {
+      // ✅ Handle image picker errors
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(context, error);
+      }
     }
   }
 
@@ -109,6 +120,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  // ✅ UPDATED: Save with ErrorHandler
   Future<void> _onSave() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -121,6 +133,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       String? finalAvatarUrl = _profile.avatarUrl;
 
+      // Upload image if selected
       if (_imageFile != null) {
         finalAvatarUrl = await _storageRepo.uploadFile(
           _imageFile!,
@@ -128,6 +141,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         );
       }
 
+      // Update profile data
       final updatedProfile = _profile.copyWith(
         username: _usernameController.text,
         profession: _professionController.text.isEmpty
@@ -146,22 +160,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       await _profileRepo.updateProfile(updatedProfile.toJson());
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile saved!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        // ✅ Use ErrorHandler's success SnackBar
+        ErrorHandler.showSuccessSnackBar(context, 'Profile saved successfully!');
         Navigator.pop(context, true);
       }
-    } catch (e) {
+    } catch (error) {
+      // ✅ USE ERROR HANDLER for consistent error display
+      ErrorHandler.logError(error); // Log for debugging
+      
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error saving: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ErrorHandler.showErrorSnackBar(context, error);
       }
     } finally {
       if (mounted) {
@@ -180,7 +188,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        // ✅ --- ADDED centerTitle: true ---
         centerTitle: true,
         title: Text(
           "Edit Profile",

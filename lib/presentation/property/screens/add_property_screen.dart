@@ -17,6 +17,9 @@ import 'package:rent_application/core/utils/image_compressor.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+// ✅ --- ERROR HANDLER IMPORT ---
+import 'package:rent_application/core/utils/error_handler.dart';
+
 class AddPropertyScreen extends StatefulWidget {
   const AddPropertyScreen({super.key});
 
@@ -95,9 +98,11 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     }
   }
 
+  // ✅ UPDATED: Pick images with error handling
   Future<void> _pickImages() async {
     if (_isPicking) return;
     _isPicking = true;
+    
     try {
       final selected = await _picker.pickMultiImage();
       if (selected.isNotEmpty && mounted) {
@@ -105,8 +110,12 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
           _images.addAll(selected);
         });
       }
-    } catch (e) {
-      debugPrint("Error picking images: $e");
+    } catch (error) {
+      // ✅ USE ERROR HANDLER for image picker errors
+      debugPrint("Error picking images: $error");
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(context, error);
+      }
     } finally {
       _isPicking = false;
     }
@@ -134,10 +143,16 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     }
   }
 
+  // ✅ UPDATED: Submit form with ErrorHandler
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
+    
     if (_images.isEmpty) {
-      _showSnackBar("📷 Please upload at least one image", isError: true);
+      // ✅ Use ErrorHandler's warning SnackBar
+      ErrorHandler.showWarningSnackBar(
+        context,
+        "📷 Please upload at least one image",
+      );
       return;
     }
 
@@ -149,6 +164,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
         throw Exception("User not authenticated. Please login first.");
       }
 
+      // Upload images with compression
       final imageUrls = await Future.wait(
         _images.map((img) async {
           final compressedFile = await ImageCompressor.compressImage(img);
@@ -191,23 +207,87 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       await _propertyRepo.addProperty(propertyData);
 
       if (!mounted) return;
-      _showSnackBar("✅ Property added successfully!");
+      
+      // ✅ Use ErrorHandler's success SnackBar
+      ErrorHandler.showSuccessSnackBar(
+        context,
+        "✅ Property added successfully!",
+      );
+      
       Navigator.pop(context, true);
-    } catch (e) {
+    } catch (error) {
+      // ✅ USE ERROR HANDLER for consistent error display
+      ErrorHandler.logError(error); // Log for debugging
+      
       if (!mounted) return;
-      _showSnackBar("⚠️ Error: ${e.toString()}", isError: true);
+      ErrorHandler.showErrorSnackBar(context, error);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _showSnackBar(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: GoogleFonts.poppins()),
-        backgroundColor: isError ? Colors.red : Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+  // ✅ NEW: Image Upload Guidelines Widget
+  Widget _buildImageGuidelines() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.shade200, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.red.shade700, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                "Image Upload Guidelines",
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red.shade700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildGuidelineItem("Upload clear and real property images"),
+          _buildGuidelineItem("Add at least 3–7 photos"),
+          _buildGuidelineItem("Avoid blurry or fake images"),
+          _buildGuidelineItem("No personal or sensitive content"),
+          _buildGuidelineItem("Use recent photos only"),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGuidelineItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "• ",
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              color: Colors.red.shade700,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: Colors.red.shade700,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -218,7 +298,6 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         elevation: 0,
-        // ✅ --- ADDED centerTitle: true ---
         centerTitle: true,
         title: Text(
           "Add New Property",
@@ -326,6 +405,11 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                   icon: Icons.photo_library,
                 ),
                 const SizedBox(height: 12),
+                
+                // ✅ NEW: Image Guidelines Box
+                _buildImageGuidelines(),
+                
+                const SizedBox(height: 16),
                 ImagePickerWidget(
                   images: _images,
                   onPickImages: _pickImages,

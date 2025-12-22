@@ -14,6 +14,9 @@ import 'package:rent_application/data/repositories/profile_repository.dart';
 import 'package:rent_application/presentation/auth/widgets/login_header.dart';
 import 'package:rent_application/presentation/auth/widgets/login_form.dart';
 
+// ✅ --- ERROR HANDLER IMPORT ---
+import 'package:rent_application/core/utils/error_handler.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -79,24 +82,9 @@ class _LoginPageState extends State<LoginPage> {
       }
 
     } catch (e) {
-      String errorMessage = "Something went wrong. Please try again.";
-      final errorText = e.toString().toLowerCase();
-
-      if (errorText.contains("invalid login credentials")) {
-        errorMessage = "Invalid email or password.";
-      } else if (errorText.contains("network")) {
-        errorMessage = "Network error. Please check your connection.";
-      } else if (errorText.contains("user not found")) {
-        errorMessage = "No account found with this email.";
-      }
-
+      // ✅ USE ERROR HANDLER INSTEAD OF MANUAL ERROR CHECKING
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ErrorHandler.showErrorSnackBar(context, e);
     } finally {
       if (mounted) {
         setState(() {

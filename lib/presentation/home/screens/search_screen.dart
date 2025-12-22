@@ -9,6 +9,10 @@ import 'package:rent_application/presentation/home/screens/favourite_tab_screen.
 import 'package:rent_application/presentation/profile/screens/profile_screen.dart';
 import 'package:rent_application/presentation/widgets/custom_bottom_nav_bar.dart';
 
+// ✅ --- ERROR HANDLING IMPORTS ---
+import 'package:rent_application/core/utils/error_handler.dart';
+import 'package:rent_application/presentation/widgets/error_view.dart';
+
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
 
@@ -29,6 +33,8 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController _endPriceController = TextEditingController();
 
   bool _isLoading = true;
+  bool _hasError = false; // ✅ Track error state
+  String _errorMessage = ''; // ✅ Store error message
 
   final List<String> _propertyTypes = ['All', 'House', 'Flat', 'Shop', 'Office'];
   final List<String> _locations = ['All', 'Turbat', 'Gwadar', 'Quetta'];
@@ -86,28 +92,37 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
+  // ✅ UPDATED: Fetch properties with ErrorHandler
   Future<void> _fetchProperties() async {
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+      _errorMessage = '';
+    });
+
     try {
       final response = await _propertyRepository.getAllPropertiesForSearch();
       if (mounted) {
         setState(() {
           _properties = response; 
           _applyFilters();
+          _isLoading = false;
         });
       }
     } catch (error) {
-      debugPrint('Error fetching properties: $error');
+      // ✅ USE ERROR HANDLER to get user-friendly message
+      final friendlyMessage = ErrorHandler.getMessage(error);
+      ErrorHandler.logError(error); // Log for debugging
+      
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error fetching properties: $error'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _hasError = true;
+          _errorMessage = friendlyMessage;
+          _isLoading = false;
+        });
+        
+        // ✅ Show error snackbar as well
+        ErrorHandler.showErrorSnackBar(context, error);
       }
     }
   }
@@ -163,28 +178,29 @@ class _SearchPageState extends State<SearchPage> {
     return Scaffold(
       backgroundColor: scaffoldBgColor,
       appBar: AppBar(
-        backgroundColor: primaryColor, // ✅ Follow theme color
+        backgroundColor: primaryColor,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white), // ✅ White back arrow
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pop(context); // ✅ Navigate back
+            Navigator.pop(context);
           },
         ),
         title: Text(
           'Search Properties',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
-            color: Colors.white, // ✅ White text
+            color: Colors.white,
           ),
         ),
         centerTitle: true,
         elevation: 0.5,
-        iconTheme: const IconThemeData(color: Colors.white), // ✅ All icons white
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            // ✅ Search and Filter UI (always visible)
             TextField(
               decoration: InputDecoration(
                 labelText: 'Search by type (e.g., house)...',
@@ -298,38 +314,45 @@ class _SearchPageState extends State<SearchPage> {
               ],
             ),
             const SizedBox(height: 16),
+            
+            // ✅ UPDATED: Content Area with Error Handling
             Expanded(
               child: _isLoading
                   ? Center(
                       child: CircularProgressIndicator(color: primaryColor))
-                  : _filteredProperties.isEmpty
-                      ? Center(
-                          child: Text(
-                            'No properties found 😕',
-                            style: GoogleFonts.poppins(
-                                fontSize: 16, color: Colors.grey[700]),
-                          ),
+                  : _hasError
+                      ? ErrorView(
+                          message: _errorMessage,
+                          onRetry: _fetchProperties, // ✅ Retry on error
                         )
-                      : ListView.builder(
-                          itemCount: _filteredProperties.length,
-                          itemBuilder: (context, index) {
-                            final property = _filteredProperties[index];
-                            
-                            return SearchResultCard(
-                              property: property,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => PropertyDetailsPage(
-                                      propertyId: property.id,
-                                    ),
-                                  ),
+                      : _filteredProperties.isEmpty
+                          ? Center(
+                              child: Text(
+                                'No properties found 😕',
+                                style: GoogleFonts.poppins(
+                                    fontSize: 16, color: Colors.grey[700]),
+                              ),
+                            )
+                          : ListView.builder(
+                              itemCount: _filteredProperties.length,
+                              itemBuilder: (context, index) {
+                                final property = _filteredProperties[index];
+                                
+                                return SearchResultCard(
+                                  property: property,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PropertyDetailsPage(
+                                          propertyId: property.id,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 );
                               },
-                            );
-                          },
-                        ),
+                            ),
             ),
           ],
         ),

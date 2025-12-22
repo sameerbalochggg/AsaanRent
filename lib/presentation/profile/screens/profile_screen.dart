@@ -24,6 +24,10 @@ import 'package:rent_application/presentation/home/screens/home_screen.dart';
 import 'package:rent_application/presentation/home/screens/search_screen.dart';
 import 'package:rent_application/presentation/home/screens/favourite_tab_screen.dart';
 
+// ✅ --- ERROR HANDLING IMPORTS ---
+import 'package:rent_application/core/utils/error_handler.dart';
+import 'package:rent_application/presentation/widgets/error_view.dart';
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -40,6 +44,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _email;
   File? _imageFile;
   bool _isLoading = true;
+  bool _hasError = false; // ✅ Track error state
+  String _errorMessage = ''; // ✅ Store friendly error message
 
   // Selected index for bottom navigation (Profile is index 3)
   int _selectedIndex = 3;
@@ -50,10 +56,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _fetchProfile();
   }
 
+  // ✅ UPDATED: Fetch profile with ErrorHandler
   Future<void> _fetchProfile() async {
     if (!mounted) return;
+    
     setState(() {
       _isLoading = true;
+      _hasError = false;
+      _errorMessage = '';
     });
 
     try {
@@ -83,21 +93,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           } else {
             _createdAt = null;
           }
+          _isLoading = false;
         });
       }
-    } catch (e) {
-      debugPrint('❌ Error fetching profile: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error fetching profile: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
+    } catch (error) {
+      // ✅ USE ERROR HANDLER to get user-friendly message
+      final friendlyMessage = ErrorHandler.getMessage(error);
+      ErrorHandler.logError(error); // Log for debugging
+      
+      debugPrint('❌ Error fetching profile: $error');
+      
       if (mounted) {
         setState(() {
+          _hasError = true;
+          _errorMessage = friendlyMessage;
           _isLoading = false;
         });
       }
@@ -167,6 +176,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  // ✅ UPDATED: Logout with ErrorHandler
   Future<void> _logout() async {
     try {
       await _authRepo.signOut();
@@ -176,14 +186,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           (route) => false,
         );
       }
-    } catch (e) {
+    } catch (error) {
+      // ✅ USE ERROR HANDLER for consistent error display
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error logging out: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ErrorHandler.showErrorSnackBar(context, error);
       }
     }
   }
@@ -195,43 +201,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: _buildAppBar(theme),
-      body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(color: theme.primaryColor),
-            )
-          : SafeArea(
-              child: RefreshIndicator(
-                onRefresh: _fetchProfile,
-                color: theme.primaryColor,
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    // ✅ Updated with new callback
-                    ProfileHeaderWidget(
-                      profile: _profile,
-                      imageFile: _imageFile,
-                      onImageSelected: _handleImageSelected,
-                    ),
-                    const SizedBox(height: 24),
-                    UserInfoCardWidget(
-                      profile: _profile,
-                      email: _email,
-                      createdAt: _createdAt,
-                    ),
-                    const SizedBox(height: 24),
-                    QuickActionsSectionWidget(),
-                    const SizedBox(height: 24),
-                    AboutSectionWidget(profile: _profile),
-                    const SizedBox(height: 24),
-                    _buildLogoutSection(),
-                    const SizedBox(height: 100),
-                  ],
-                ),
-              ),
-            ),
+      body: _buildBody(theme),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
+      ),
+    );
+  }
+
+  // ✅ UPDATED: Body with error handling
+  Widget _buildBody(ThemeData theme) {
+    // Loading State
+    if (_isLoading) {
+      return Center(
+        child: CircularProgressIndicator(color: theme.primaryColor),
+      );
+    }
+
+    // ✅ Error State - Using ErrorView widget
+    if (_hasError) {
+      return ErrorView(
+        message: _errorMessage,
+        onRetry: _fetchProfile,
+      );
+    }
+
+    // Success State - Show profile content
+    return SafeArea(
+      child: RefreshIndicator(
+        onRefresh: _fetchProfile,
+        color: theme.primaryColor,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // ✅ Updated with new callback
+            ProfileHeaderWidget(
+              profile: _profile,
+              imageFile: _imageFile,
+              onImageSelected: _handleImageSelected,
+            ),
+            const SizedBox(height: 24),
+            UserInfoCardWidget(
+              profile: _profile,
+              email: _email,
+              createdAt: _createdAt,
+            ),
+            const SizedBox(height: 24),
+            QuickActionsSectionWidget(),
+            const SizedBox(height: 24),
+            AboutSectionWidget(profile: _profile),
+            const SizedBox(height: 24),
+            _buildLogoutSection(),
+            const SizedBox(height: 100),
+          ],
+        ),
       ),
     );
   }

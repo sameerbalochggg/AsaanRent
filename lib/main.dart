@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 // --- Theme Imports ---
 import 'package:rent_application/presentation/providers/theme_provider.dart';
 import 'package:rent_application/core/theme.dart';
+import 'package:rent_application/presentation/providers/notification_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => PropertyProvider()),
         ChangeNotifierProvider(create: (context) => ProfileProvider()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        ChangeNotifierProvider(create: (context) => NotificationProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

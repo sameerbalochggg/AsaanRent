@@ -3,14 +3,17 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:rent_application/data/models/property_model.dart';
 import 'package:rent_application/data/repositories/property_repository.dart';
 import 'package:rent_application/data/repositories/profile_repository.dart';
-import 'package:rent_application/core/theme.dart';
 
 // ✅ --- Import your widgets and other screens ---
 import 'package:rent_application/presentation/home/widgets/favorite_property_card.dart';
 import 'package:rent_application/presentation/widgets/custom_bottom_nav_bar.dart';
 import 'package:rent_application/presentation/profile/screens/profile_screen.dart';
 import 'package:rent_application/presentation/home/screens/search_screen.dart';
-import 'package:rent_application/presentation/home/screens/home_screen.dart'; // ✅ Add this import
+import 'package:rent_application/presentation/home/screens/home_screen.dart';
+
+// ✅ --- ERROR HANDLING IMPORTS ---
+import 'package:rent_application/core/utils/error_handler.dart';
+import 'package:rent_application/presentation/widgets/error_view.dart';
 
 
 class FavoritesTabScreen extends StatefulWidget {
@@ -26,7 +29,8 @@ class _FavoritesTabScreenState extends State<FavoritesTabScreen> {
 
   List<Property> _favoritesProperties = [];
   bool _isLoading = true;
-  String? _errorMessage;
+  bool _hasError = false; // ✅ Track error state
+  String _errorMessage = ''; // ✅ Store friendly error message
 
   // ✅ --- Favorites is the 3rd item (index 2) ---
   int _selectedIndex = 2;
@@ -70,10 +74,12 @@ class _FavoritesTabScreenState extends State<FavoritesTabScreen> {
     }
   }
 
+  // ✅ UPDATED: Load favorites with ErrorHandler
   Future<void> _loadFavoritesProperties() async {
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
+      _hasError = false;
+      _errorMessage = '';
     });
 
     try {
@@ -96,15 +102,22 @@ class _FavoritesTabScreenState extends State<FavoritesTabScreen> {
           _isLoading = false;
         });
       }
-    } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
-      debugPrint('Error loading favorites: $e');
+    } catch (error) {
+      // ✅ USE ERROR HANDLER to get user-friendly message
+      final friendlyMessage = ErrorHandler.getMessage(error);
+      ErrorHandler.logError(error); // Log for debugging
+      
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = friendlyMessage;
+          _isLoading = false;
+        });
+      }
     }
   }
 
+  // ✅ UPDATED: Remove from favorites with ErrorHandler
   Future<void> _removeFromFavorites(Property property) async {
     try {
       await _profileRepo.toggleFavorite(property.id);
@@ -114,15 +127,15 @@ class _FavoritesTabScreenState extends State<FavoritesTabScreen> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Removed from favorites')),
+        ErrorHandler.showSuccessSnackBar(
+          context, 
+          'Removed from favorites',
         );
       }
-    } catch (e) {
+    } catch (error) {
+      // ✅ USE ERROR HANDLER for consistent error display
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ErrorHandler.showErrorSnackBar(context, error);
       }
     }
   }
@@ -147,52 +160,24 @@ class _FavoritesTabScreenState extends State<FavoritesTabScreen> {
     );
   }
 
+  // ✅ UPDATED: Body with ErrorView integration
   Widget _buildBody(ThemeData theme) {
+    // Loading State
     if (_isLoading) {
       return Center(
         child: CircularProgressIndicator(color: theme.primaryColor),
       );
     }
 
-    if (_errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: theme.dividerColor),
-            const SizedBox(height: 16),
-            Text(
-              'Error loading favorites',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: theme.textTheme.bodyMedium?.color,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Text(
-                _errorMessage!,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall,
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _loadFavoritesProperties,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: kPrimaryColor,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ],
-        ),
+    // ✅ Error State - Using ErrorView widget
+    if (_hasError) {
+      return ErrorView(
+        message: _errorMessage,
+        onRetry: _loadFavoritesProperties,
       );
     }
 
+    // Empty State
     if (_favoritesProperties.isEmpty) {
       return Center(
         child: Column(
@@ -226,6 +211,7 @@ class _FavoritesTabScreenState extends State<FavoritesTabScreen> {
       );
     }
 
+    // Success State - Show favorites list
     return RefreshIndicator(
       onRefresh: _loadFavoritesProperties,
       color: theme.primaryColor,
