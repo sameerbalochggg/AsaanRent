@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:rent_application/data/models/user_profile_model.dart';
-import 'package:rent_application/data/models/property_model.dart';
-import 'package:rent_application/data/repositories/property_repository.dart';
-import 'package:rent_application/presentation/property/screens/property_details_screen.dart';
+import 'package:asaan_rent/data/models/user_profile_model.dart';
+import 'package:asaan_rent/data/models/property_model.dart';
+import 'package:asaan_rent/data/repositories/property_repository.dart';
+import 'package:asaan_rent/presentation/property/screens/property_details_screen.dart';
 
 class UserDetailsScreen extends StatefulWidget {
   final UserProfile user;

@@ -4,18 +4,19 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 // ✅ Repository & Auth Imports
-import 'package:rent_application/data/repositories/auth_repository.dart';
-import 'package:rent_application/presentation/auth/screens/login.dart';
+import 'package:asaan_rent/data/repositories/auth_repository.dart';
+import 'package:asaan_rent/presentation/auth/screens/login.dart';
 
 // ✅ Screen Imports
-import 'package:rent_application/presentation/property/screens/my_property_list_screen.dart';
-import 'package:rent_application/presentation/property/screens/add_property_screen.dart';
-import 'package:rent_application/presentation/profile/screens/profile_screen.dart';
-import 'package:rent_application/presentation/auth/screens/settings_screen.dart';
-import 'package:rent_application/presentation/home/screens/help_and_support_screen.dart';
+import 'package:asaan_rent/presentation/property/screens/my_property_list_screen.dart';
+import 'package:asaan_rent/presentation/property/screens/add_property_screen.dart';
+import 'package:asaan_rent/presentation/profile/screens/profile_screen.dart';
+import 'package:asaan_rent/presentation/auth/screens/settings_screen.dart';
+import 'package:asaan_rent/presentation/home/screens/help_and_support_screen.dart';
+import 'package:asaan_rent/presentation/home/screens/favourite_tab_screen.dart'; // ✅ ADDED
 
 // ✅ Provider Import
-import 'package:rent_application/presentation/providers/profile_provider.dart';
+import 'package:asaan_rent/presentation/providers/profile_provider.dart';
 
 class AppDrawer extends StatelessWidget {
   final VoidCallback onPropertyAdded;
@@ -122,14 +123,12 @@ class AppDrawer extends StatelessWidget {
             onTap: () => _navigateTo(context, const ProfileScreen()),
           ),
 
+          // ✅ UPDATED: Navigate to FavoritesTabScreen
           _DrawerTile(
             icon: Icons.favorite_border,
             title: "My Favorites",
             iconColor: iconColor,
-            onTap: () {
-              debugPrint("Navigate to Favorites");
-              Navigator.pop(context);
-            },
+            onTap: () => _navigateTo(context, const FavoritesTabScreen()),
           ),
 
           const Divider(),

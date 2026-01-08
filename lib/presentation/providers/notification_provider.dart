@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:rent_application/data/models/notification_model.dart';
-import 'package:rent_application/data/repositories/notification_repository.dart';
+import 'package:asaan_rent/data/models/notification_model.dart';
+import 'package:asaan_rent/data/repositories/notification_repository.dart';
 
 class NotificationProvider with ChangeNotifier {
   final NotificationRepository _repo = NotificationRepository();

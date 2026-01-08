@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:rent_application/data/models/property_model.dart';
-import 'package:rent_application/data/repositories/property_repository.dart';
-import 'package:rent_application/core/utils/error_handler.dart'; // ✅ Import ErrorHandler
+import 'package:asaan_rent/data/models/property_model.dart';
+import 'package:asaan_rent/data/repositories/property_repository.dart';
+import 'package:asaan_rent/core/utils/error_handler.dart'; // ✅ Import ErrorHandler
 
 class PropertyProvider with ChangeNotifier {
   final PropertyRepository _propertyRepo = PropertyRepository();

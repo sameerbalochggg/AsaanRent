@@ -1,11 +1,11 @@
 // Create this file: lib/presentation/navigation/main_navigation.dart
 
 import 'package:flutter/material.dart';
-import 'package:rent_application/presentation/home/screens/home_screen.dart';
-import 'package:rent_application/presentation/home/screens/search_screen.dart';
-import 'package:rent_application/presentation/home/screens/favourite_tab_screen.dart';
-import 'package:rent_application/presentation/profile/screens/profile_screen.dart';
-import 'package:rent_application/presentation/widgets/custom_bottom_nav_bar.dart';
+import 'package:asaan_rent/presentation/home/screens/home_screen.dart';
+import 'package:asaan_rent/presentation/home/screens/search_screen.dart';
+import 'package:asaan_rent/presentation/home/screens/favourite_tab_screen.dart';
+import 'package:asaan_rent/presentation/profile/screens/profile_screen.dart';
+import 'package:asaan_rent/presentation/widgets/custom_bottom_nav_bar.dart';
 
 /// MainNavigation is the main container for the app's bottom navigation
 /// It uses PageView to smoothly switch between screens without recreating them

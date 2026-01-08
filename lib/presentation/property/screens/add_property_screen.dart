@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:rent_application/data/repositories/property_repository.dart';
-import 'package:rent_application/data/repositories/storage_repository.dart';
-import 'package:rent_application/presentation/property/screens/map_screen.dart';
-import 'package:rent_application/presentation/property/widgets/add_property/section_header_widget.dart';
-import 'package:rent_application/presentation/property/widgets/add_property/property_type_dropdown.dart';
-import 'package:rent_application/presentation/property/widgets/add_property/location_fields_widget.dart';
-import 'package:rent_application/presentation/property/widgets/add_property/map_selector_widget.dart';
-import 'package:rent_application/presentation/property/widgets/add_property/price_field_widget.dart';
-import 'package:rent_application/presentation/property/widgets/add_property/residential_fields_widget.dart';
-import 'package:rent_application/presentation/property/widgets/add_property/description_field_widget.dart';
-import 'package:rent_application/presentation/property/widgets/add_property/contact_fields_widget.dart';
-import 'package:rent_application/presentation/property/widgets/add_property/image_picker_widget.dart';
-import 'package:rent_application/presentation/property/widgets/add_property/submit_button_widget.dart';
-import 'package:rent_application/core/utils/image_compressor.dart';
+import 'package:asaan_rent/data/repositories/property_repository.dart';
+import 'package:asaan_rent/data/repositories/storage_repository.dart';
+import 'package:asaan_rent/presentation/property/screens/map_screen.dart';
+import 'package:asaan_rent/presentation/property/widgets/add_property/section_header_widget.dart';
+import 'package:asaan_rent/presentation/property/widgets/add_property/property_type_dropdown.dart';
+import 'package:asaan_rent/presentation/property/widgets/add_property/location_fields_widget.dart';
+import 'package:asaan_rent/presentation/property/widgets/add_property/map_selector_widget.dart';
+import 'package:asaan_rent/presentation/property/widgets/add_property/price_field_widget.dart';
+import 'package:asaan_rent/presentation/property/widgets/add_property/residential_fields_widget.dart';
+import 'package:asaan_rent/presentation/property/widgets/add_property/description_field_widget.dart';
+import 'package:asaan_rent/presentation/property/widgets/add_property/contact_fields_widget.dart';
+import 'package:asaan_rent/presentation/property/widgets/add_property/image_picker_widget.dart';
+import 'package:asaan_rent/presentation/property/widgets/add_property/submit_button_widget.dart';
+import 'package:asaan_rent/core/utils/image_compressor.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // ✅ --- ERROR HANDLER IMPORT ---
-import 'package:rent_application/core/utils/error_handler.dart';
+import 'package:asaan_rent/core/utils/error_handler.dart';
 
 class AddPropertyScreen extends StatefulWidget {
   const AddPropertyScreen({super.key});

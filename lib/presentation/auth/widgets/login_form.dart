@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rent_application/presentation/auth/screens/forgot_password.dart';
+import 'package:asaan_rent/presentation/auth/screens/forgot_password.dart';
 
 class LoginForm extends StatefulWidget {
   final GlobalKey<FormState> formKey;

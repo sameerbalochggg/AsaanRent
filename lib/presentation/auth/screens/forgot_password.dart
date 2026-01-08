@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:rent_application/core/utils/error_handler.dart';
-import 'package:rent_application/data/repositories/auth_repository.dart';
-import 'package:rent_application/presentation/auth/screens/reset_password.dart';
+import 'package:asaan_rent/core/utils/error_handler.dart';
+import 'package:asaan_rent/data/repositories/auth_repository.dart';
+import 'package:asaan_rent/presentation/auth/screens/reset_password.dart';
 
 // ✅ --- Import Widgets ---
-import 'package:rent_application/presentation/auth/widgets/forgot_password_header.dart';
-import 'package:rent_application/presentation/auth/widgets/forgot_password_form.dart';
+import 'package:asaan_rent/presentation/auth/widgets/forgot_password_header.dart';
+import 'package:asaan_rent/presentation/auth/widgets/forgot_password_form.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});

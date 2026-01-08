@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rent_application/data/models/property_model.dart';
-import 'package:rent_application/data/repositories/property_repository.dart';
-import 'package:rent_application/presentation/property/widgets/my_property_card.dart';
+import 'package:asaan_rent/data/models/property_model.dart';
+import 'package:asaan_rent/data/repositories/property_repository.dart';
+import 'package:asaan_rent/presentation/property/widgets/my_property_card.dart';
 
 class MyPropertyListPage extends StatefulWidget {
   const MyPropertyListPage({Key? key}) : super(key: key);

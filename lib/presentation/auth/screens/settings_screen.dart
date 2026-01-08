@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart'; 
-import 'package:rent_application/presentation/providers/theme_provider.dart'; 
-import 'package:rent_application/core/theme.dart'; 
+import 'package:asaan_rent/presentation/providers/theme_provider.dart'; 
+import 'package:asaan_rent/core/theme.dart'; 
 
 // ✅ --- Added Import for Forgot Password Page ---
-import 'package:rent_application/presentation/auth/screens/forgot_password.dart';
+import 'package:asaan_rent/presentation/auth/screens/forgot_password.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -26,7 +26,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        // ✅ --- ADDED centerTitle: true ---
         centerTitle: true,
         title: Text(
           "Settings",
@@ -35,7 +34,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: kPrimaryColor, // From theme.dart
+        backgroundColor: kPrimaryColor,
         foregroundColor: Colors.white,
       ),
       body: ListView(
@@ -48,24 +47,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: "Change Password",
             subtitle: "Update your login password",
             onTap: () {
-              // ✅ --- Navigate to ForgotPasswordPage ---
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const ForgotPasswordPage(),
                 ),
-              );
-            },
-          ),
-          _buildSettingItem(
-            context,
-            icon: Icons.delete_outline,
-            title: "Delete Account",
-            subtitle: "Permanently delete your account",
-            isDestructive: true, 
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Show Delete Account Dialog')),
               );
             },
           ),
@@ -166,7 +152,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w500,
             fontSize: 16,
-            // ✅ Ensure text color adapts to theme
             color: theme.textTheme.bodyLarge?.color, 
           ),
         ),

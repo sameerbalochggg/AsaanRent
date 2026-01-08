@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rent_application/data/models/property_model.dart';
-import 'package:rent_application/data/repositories/property_repository.dart';
-import 'package:rent_application/presentation/property/screens/property_details_screen.dart';
-import 'package:rent_application/presentation/home/widgets/search_result_card.dart';
-import 'package:rent_application/presentation/home/screens/home_screen.dart';
-import 'package:rent_application/presentation/home/screens/favourite_tab_screen.dart';
-import 'package:rent_application/presentation/profile/screens/profile_screen.dart';
-import 'package:rent_application/presentation/widgets/custom_bottom_nav_bar.dart';
+import 'package:asaan_rent/data/models/property_model.dart';
+import 'package:asaan_rent/data/repositories/property_repository.dart';
+import 'package:asaan_rent/presentation/property/screens/property_details_screen.dart';
+import 'package:asaan_rent/presentation/home/widgets/search_result_card.dart';
+import 'package:asaan_rent/presentation/home/screens/home_screen.dart';
+import 'package:asaan_rent/presentation/home/screens/favourite_tab_screen.dart';
+import 'package:asaan_rent/presentation/profile/screens/profile_screen.dart';
+import 'package:asaan_rent/presentation/widgets/custom_bottom_nav_bar.dart';
 
 // ✅ --- ERROR HANDLING IMPORTS ---
-import 'package:rent_application/core/utils/error_handler.dart';
-import 'package:rent_application/presentation/widgets/error_view.dart';
+import 'package:asaan_rent/core/utils/error_handler.dart';
+import 'package:asaan_rent/presentation/widgets/error_view.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});

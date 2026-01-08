@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rent_application/data/models/user_profile_model.dart';
-import 'package:rent_application/data/repositories/profile_repository.dart';
-import 'package:rent_application/presentation/admin/screens/user_details_screen.dart';
+import 'package:asaan_rent/data/models/user_profile_model.dart';
+import 'package:asaan_rent/data/repositories/profile_repository.dart';
+import 'package:asaan_rent/presentation/admin/screens/user_details_screen.dart';
 
 class UserListScreen extends StatefulWidget {
   const UserListScreen({super.key});

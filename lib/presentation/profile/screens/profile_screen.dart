@@ -1,32 +1,32 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:rent_application/presentation/profile/screens/edit_profile_screen.dart';
+import 'package:asaan_rent/presentation/profile/screens/edit_profile_screen.dart';
 
 // Repository & Model imports
-import 'package:rent_application/data/models/user_profile_model.dart';
-import 'package:rent_application/data/repositories/auth_repository.dart';
-import 'package:rent_application/data/repositories/profile_repository.dart';
-import 'package:rent_application/presentation/auth/screens/login.dart';
+import 'package:asaan_rent/data/models/user_profile_model.dart';
+import 'package:asaan_rent/data/repositories/auth_repository.dart';
+import 'package:asaan_rent/data/repositories/profile_repository.dart';
+import 'package:asaan_rent/presentation/auth/screens/login.dart';
 
 // Widget imports
-import 'package:rent_application/presentation/profile/widgets/profile_header_widget.dart';
-import 'package:rent_application/presentation/profile/widgets/user_info_card_widget.dart';
-import 'package:rent_application/presentation/profile/widgets/quick_actions_section_widget.dart';
-import 'package:rent_application/presentation/profile/widgets/about_section_widget.dart';
-import 'package:rent_application/presentation/profile/widgets/logout_button_widget.dart';
+import 'package:asaan_rent/presentation/profile/widgets/profile_header_widget.dart';
+import 'package:asaan_rent/presentation/profile/widgets/user_info_card_widget.dart';
+import 'package:asaan_rent/presentation/profile/widgets/quick_actions_section_widget.dart';
+import 'package:asaan_rent/presentation/profile/widgets/about_section_widget.dart';
+import 'package:asaan_rent/presentation/profile/widgets/logout_button_widget.dart';
 
 // CustomBottomNavBar import
-import 'package:rent_application/presentation/widgets/custom_bottom_nav_bar.dart';
+import 'package:asaan_rent/presentation/widgets/custom_bottom_nav_bar.dart';
 
 // Screen imports for navigation
-import 'package:rent_application/presentation/home/screens/home_screen.dart';
-import 'package:rent_application/presentation/home/screens/search_screen.dart';
-import 'package:rent_application/presentation/home/screens/favourite_tab_screen.dart';
+import 'package:asaan_rent/presentation/home/screens/home_screen.dart';
+import 'package:asaan_rent/presentation/home/screens/search_screen.dart';
+import 'package:asaan_rent/presentation/home/screens/favourite_tab_screen.dart';
 
 // ✅ --- ERROR HANDLING IMPORTS ---
-import 'package:rent_application/core/utils/error_handler.dart';
-import 'package:rent_application/presentation/widgets/error_view.dart';
+import 'package:asaan_rent/core/utils/error_handler.dart';
+import 'package:asaan_rent/presentation/widgets/error_view.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

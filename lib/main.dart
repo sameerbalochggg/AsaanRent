@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:rent_application/presentation/auth/screens/splash.dart';
-import 'package:rent_application/presentation/providers/property_provider.dart';
-import 'package:rent_application/presentation/providers/profile_provider.dart';
+import 'package:asaan_rent/presentation/auth/screens/splash.dart';
+import 'package:asaan_rent/presentation/providers/property_provider.dart';
+import 'package:asaan_rent/presentation/providers/profile_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // --- Theme Imports ---
-import 'package:rent_application/presentation/providers/theme_provider.dart';
-import 'package:rent_application/core/theme.dart';
-import 'package:rent_application/presentation/providers/notification_provider.dart';
+import 'package:asaan_rent/presentation/providers/theme_provider.dart';
+import 'package:asaan_rent/core/theme.dart';
+import 'package:asaan_rent/presentation/providers/notification_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

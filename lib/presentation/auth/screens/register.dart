@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rent_application/data/repositories/auth_repository.dart';
+import 'package:asaan_rent/data/repositories/auth_repository.dart';
 
 // ✅ --- Import New Widgets ---
-import 'package:rent_application/presentation/auth/widgets/register_header.dart';
-import 'package:rent_application/presentation/auth/widgets/register_form.dart';
+import 'package:asaan_rent/presentation/auth/widgets/register_header.dart';
+import 'package:asaan_rent/presentation/auth/widgets/register_form.dart';
 
 // ✅ --- ERROR HANDLER IMPORT ---
-import 'package:rent_application/core/utils/error_handler.dart';
+import 'package:asaan_rent/core/utils/error_handler.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});

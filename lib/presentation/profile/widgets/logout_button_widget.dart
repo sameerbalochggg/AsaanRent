@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rent_application/core/theme.dart';
-import 'package:rent_application/data/repositories/auth_repository.dart';
-import 'package:rent_application/presentation/auth/screens/login.dart';
+import 'package:asaan_rent/core/theme.dart';
+import 'package:asaan_rent/data/repositories/auth_repository.dart';
+import 'package:asaan_rent/presentation/auth/screens/login.dart';
 
 class LogoutButtonWidget extends StatelessWidget {
   final VoidCallback? onLogout; // Made optional since we handle it internally now

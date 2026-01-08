@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rent_application/data/models/property_model.dart';
+import 'package:asaan_rent/data/models/property_model.dart';
 
 class EditPropertyTab extends StatefulWidget {
   final Property property;

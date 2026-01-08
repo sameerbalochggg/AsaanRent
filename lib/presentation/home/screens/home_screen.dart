@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:rent_application/data/models/property_model.dart';
-import 'package:rent_application/presentation/home/screens/favourite_tab_screen.dart';
-import 'package:rent_application/presentation/providers/property_provider.dart';
-import 'package:rent_application/presentation/profile/screens/profile_screen.dart';
-import 'package:rent_application/presentation/home/screens/search_screen.dart';
-import 'package:rent_application/presentation/property/screens/property_details_screen.dart';
+import 'package:asaan_rent/data/models/property_model.dart';
+import 'package:asaan_rent/presentation/home/screens/favourite_tab_screen.dart';
+import 'package:asaan_rent/presentation/providers/property_provider.dart';
+import 'package:asaan_rent/presentation/profile/screens/profile_screen.dart';
+import 'package:asaan_rent/presentation/home/screens/search_screen.dart';
+import 'package:asaan_rent/presentation/property/screens/property_details_screen.dart';
 
 // --- Import your widgets ---
-import 'package:rent_application/presentation/home/widgets/app_drawer.dart';
-import 'package:rent_application/presentation/home/widgets/featured_carousel.dart';
-import 'package:rent_application/presentation/home/widgets/category_chip.dart';
-import 'package:rent_application/presentation/home/widgets/property_card.dart';
-import 'package:rent_application/presentation/widgets/custom_bottom_nav_bar.dart';
+import 'package:asaan_rent/presentation/home/widgets/app_drawer.dart';
+import 'package:asaan_rent/presentation/home/widgets/featured_carousel.dart';
+import 'package:asaan_rent/presentation/home/widgets/category_chip.dart';
+import 'package:asaan_rent/presentation/home/widgets/property_card.dart';
+import 'package:asaan_rent/presentation/widgets/custom_bottom_nav_bar.dart';
 
 // ✅ Import Error Widget
-import 'package:rent_application/presentation/widgets/error_view.dart';
+import 'package:asaan_rent/presentation/widgets/error_view.dart';
 
 // ✅ Import Notification Provider & Screen
-import 'package:rent_application/presentation/providers/notification_provider.dart';
-import 'package:rent_application/presentation/home/screens/notifications_screen.dart';
+import 'package:asaan_rent/presentation/providers/notification_provider.dart';
+import 'package:asaan_rent/presentation/home/screens/notifications_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

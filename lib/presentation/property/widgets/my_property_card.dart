@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rent_application/data/models/property_model.dart';
-import 'package:rent_application/presentation/property/screens/property_detail_tabs_screen.dart';
+import 'package:asaan_rent/data/models/property_model.dart';
+import 'package:asaan_rent/presentation/property/screens/property_detail_tabs_screen.dart';
 
 class MyPropertyCard extends StatelessWidget {
   final Property property;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rent_application/data/models/user_profile_model.dart';
+import 'package:asaan_rent/data/models/user_profile_model.dart';
 
 class AboutSectionWidget extends StatelessWidget {
   final UserProfile? profile;

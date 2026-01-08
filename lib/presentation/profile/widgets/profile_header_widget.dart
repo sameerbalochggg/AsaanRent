@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rent_application/data/models/user_profile_model.dart';
-import 'package:rent_application/presentation/profile/widgets/profile_avatar_widget.dart';
+import 'package:asaan_rent/data/models/user_profile_model.dart';
+import 'package:asaan_rent/presentation/profile/widgets/profile_avatar_widget.dart';
 
 class ProfileHeaderWidget extends StatelessWidget {
   final UserProfile? profile;

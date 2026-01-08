@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rent_application/presentation/auth/screens/register.dart'; 
+import 'package:asaan_rent/presentation/auth/screens/register.dart'; 
 
 // 🔹 Import your Home & Admin Pages
-import 'package:rent_application/presentation/home/screens/home_screen.dart';
-import 'package:rent_application/presentation/admin/screens/admin_dashboard_screen.dart';
+import 'package:asaan_rent/presentation/home/screens/home_screen.dart';
+import 'package:asaan_rent/presentation/admin/screens/admin_dashboard_screen.dart';
 
 // ✅ --- REPOSITORY IMPORTS ---
-import 'package:rent_application/data/repositories/auth_repository.dart';
-import 'package:rent_application/data/repositories/profile_repository.dart';
+import 'package:asaan_rent/data/repositories/auth_repository.dart';
+import 'package:asaan_rent/data/repositories/profile_repository.dart';
 
 // ✅ --- WIDGET IMPORTS ---
-import 'package:rent_application/presentation/auth/widgets/login_header.dart';
-import 'package:rent_application/presentation/auth/widgets/login_form.dart';
+import 'package:asaan_rent/presentation/auth/widgets/login_header.dart';
+import 'package:asaan_rent/presentation/auth/widgets/login_form.dart';
 
 // ✅ --- ERROR HANDLER IMPORT ---
-import 'package:rent_application/core/utils/error_handler.dart';
+import 'package:asaan_rent/core/utils/error_handler.dart';
 
 
 class LoginPage extends StatefulWidget {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rent_application/core/theme.dart'; // Import your theme constants
+import 'package:asaan_rent/core/theme.dart'; // Import your theme constants
 
 class ErrorView extends StatelessWidget {
   final String message;

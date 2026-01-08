@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:rent_application/data/models/property_model.dart';
-import 'package:rent_application/data/repositories/property_repository.dart';
-import 'package:rent_application/presentation/property/widgets/edit_property_tab.dart';
-import 'package:rent_application/core/theme.dart'; // Import your theme
+import 'package:asaan_rent/data/models/property_model.dart';
+import 'package:asaan_rent/data/repositories/property_repository.dart';
+import 'package:asaan_rent/presentation/property/widgets/edit_property_tab.dart';
+import 'package:asaan_rent/core/theme.dart'; // Import your theme
 
 class PropertyDetailTabsScreen extends StatefulWidget {
   final String propertyId; // Receives a String (UUID)

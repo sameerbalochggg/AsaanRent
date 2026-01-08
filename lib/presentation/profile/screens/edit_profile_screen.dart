@@ -2,18 +2,18 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:rent_application/data/models/user_profile_model.dart';
-import 'package:rent_application/data/repositories/profile_repository.dart';
-import 'package:rent_application/data/repositories/storage_repository.dart';
+import 'package:asaan_rent/data/models/user_profile_model.dart';
+import 'package:asaan_rent/data/repositories/profile_repository.dart';
+import 'package:asaan_rent/data/repositories/storage_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Widget imports
-import 'package:rent_application/presentation/profile/widgets/edit_profile_avatar_widget.dart';
-import 'package:rent_application/presentation/profile/widgets/edit_profile_form_widget.dart';
-import 'package:rent_application/presentation/profile/widgets/save_button_widget.dart';
+import 'package:asaan_rent/presentation/profile/widgets/edit_profile_avatar_widget.dart';
+import 'package:asaan_rent/presentation/profile/widgets/edit_profile_form_widget.dart';
+import 'package:asaan_rent/presentation/profile/widgets/save_button_widget.dart';
 
 // ✅ --- ERROR HANDLER IMPORT ---
-import 'package:rent_application/core/utils/error_handler.dart';
+import 'package:asaan_rent/core/utils/error_handler.dart';
 
 const kSecondaryColor = Colors.white;
 

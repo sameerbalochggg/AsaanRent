@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:rent_application/data/models/user_profile_model.dart';
-import 'package:rent_application/data/repositories/auth_repository.dart';
-import 'package:rent_application/data/repositories/profile_repository.dart';
+import 'package:asaan_rent/data/models/user_profile_model.dart';
+import 'package:asaan_rent/data/repositories/auth_repository.dart';
+import 'package:asaan_rent/data/repositories/profile_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileProvider with ChangeNotifier {

@@ -30,7 +30,7 @@ class AuthRepository {
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
-        emailRedirectTo: 'rentapp://login-callback',
+        emailRedirectTo: 'asaanrent://login-callback',
         data: {
           'username': username, // This saves to 'raw_user_meta_data'
         },
@@ -70,7 +70,7 @@ class AuthRepository {
     try {
       await _supabase.auth.signInWithOtp(
         email: email,
-        emailRedirectTo: "rentapp://reset-callback/",
+        emailRedirectTo: "asaanrent://reset-callback/",
       );
     } catch (e) {
       rethrow;

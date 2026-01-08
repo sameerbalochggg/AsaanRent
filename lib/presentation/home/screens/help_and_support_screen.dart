@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // ✅ --- ERROR HANDLER IMPORT ---
-import 'package:rent_application/core/utils/error_handler.dart';
+import 'package:asaan_rent/core/utils/error_handler.dart';
 
 class HelpAndSupportScreen extends StatefulWidget {
   const HelpAndSupportScreen({super.key});

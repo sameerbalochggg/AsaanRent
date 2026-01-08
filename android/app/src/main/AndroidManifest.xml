@@ -30,7 +30,7 @@
     </queries>
 
     <application
-        android:label="rent_application"
+        android:label="AsaanRent"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -59,14 +59,14 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="myapp" android:host="reset-callback" />
+                <data android:scheme="asaanrent" android:host="reset-callback" />
             </intent-filter>
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="rentapp" android:host="login-callback" />
+                <data android:scheme="asaanrent" android:host="login-callback" />
             </intent-filter>
 
 

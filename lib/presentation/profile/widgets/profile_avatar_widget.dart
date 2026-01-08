@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:crop_your_image/crop_your_image.dart';
-import 'package:rent_application/data/models/user_profile_model.dart';
+import 'package:asaan_rent/data/models/user_profile_model.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ProfileAvatarWidget extends StatelessWidget {

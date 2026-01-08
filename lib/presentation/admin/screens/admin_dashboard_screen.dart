@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rent_application/data/models/property_model.dart';
-import 'package:rent_application/data/models/report_model.dart';
-import 'package:rent_application/data/repositories/auth_repository.dart';
-import 'package:rent_application/data/repositories/property_repository.dart';
-import 'package:rent_application/presentation/auth/screens/login.dart';
-import 'package:rent_application/presentation/property/screens/property_details_screen.dart';
+import 'package:asaan_rent/data/models/property_model.dart';
+import 'package:asaan_rent/data/models/report_model.dart';
+import 'package:asaan_rent/data/repositories/auth_repository.dart';
+import 'package:asaan_rent/data/repositories/property_repository.dart';
+import 'package:asaan_rent/presentation/auth/screens/login.dart';
+import 'package:asaan_rent/presentation/property/screens/property_details_screen.dart';
 
 // ✅ --- Import Admin Widgets ---
-import 'package:rent_application/presentation/admin/widgets/admin_property_card.dart';
-import 'package:rent_application/presentation/admin/screens/user_list_screen.dart';
+import 'package:asaan_rent/presentation/admin/widgets/admin_property_card.dart';
+import 'package:asaan_rent/presentation/admin/screens/user_list_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});

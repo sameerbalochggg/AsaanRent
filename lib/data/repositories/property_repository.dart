@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:rent_application/data/models/property_model.dart';
-import 'package:rent_application/data/models/report_model.dart'; // ✅ Added Import for Report
+import 'package:asaan_rent/data/models/property_model.dart';
+import 'package:asaan_rent/data/models/report_model.dart'; // ✅ Added Import for Report
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // ✅ --- Import Notification Repository ---
-import 'package:rent_application/data/repositories/notification_repository.dart';
+import 'package:asaan_rent/data/repositories/notification_repository.dart';
 
 final _supabase = Supabase.instance.client;
 

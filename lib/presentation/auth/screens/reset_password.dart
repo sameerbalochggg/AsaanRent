@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 // ❌ --- REMOVED UNUSED IMPORT ---
 // import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:rent_application/data/repositories/auth_repository.dart';
-import 'package:rent_application/presentation/auth/screens/login.dart';
+import 'package:asaan_rent/data/repositories/auth_repository.dart';
+import 'package:asaan_rent/presentation/auth/screens/login.dart';
 
 // ✅ --- Import Widgets ---
-import 'package:rent_application/presentation/auth/widgets/reset_password_header.dart';
-import 'package:rent_application/presentation/auth/widgets/reset_password_form.dart';
+import 'package:asaan_rent/presentation/auth/widgets/reset_password_header.dart';
+import 'package:asaan_rent/presentation/auth/widgets/reset_password_form.dart';
 
 // ✅ --- Import Error Handler ---
-import 'package:rent_application/core/utils/error_handler.dart';
+import 'package:asaan_rent/core/utils/error_handler.dart';
 
 class ResetPasswordPage extends StatefulWidget {
   final String email;

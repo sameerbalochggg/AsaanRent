@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rent_application/data/models/property_model.dart';
-import 'package:rent_application/core/theme.dart';
-import 'package:rent_application/presentation/property/screens/property_details_screen.dart'; // ✅ Add this import
+import 'package:asaan_rent/data/models/property_model.dart';
+import 'package:asaan_rent/core/theme.dart';
+import 'package:asaan_rent/presentation/property/screens/property_details_screen.dart'; // ✅ Add this import
 
 class FavoritesPropertyCard extends StatelessWidget {
   final Property property;

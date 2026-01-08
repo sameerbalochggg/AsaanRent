@@ -3,24 +3,24 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
 // ✅ --- Models & Repositories ---
-import 'package:rent_application/data/models/property_model.dart';
-import 'package:rent_application/data/repositories/profile_repository.dart';
-import 'package:rent_application/data/repositories/property_repository.dart';
+import 'package:asaan_rent/data/models/property_model.dart';
+import 'package:asaan_rent/data/repositories/profile_repository.dart';
+import 'package:asaan_rent/data/repositories/property_repository.dart';
 
 // ✅ --- Widgets ---
-import 'package:rent_application/presentation/property/widgets/property_details_carousel.dart';
-import 'package:rent_application/presentation/property/widgets/property_header_card.dart';
-import 'package:rent_application/presentation/property/widgets/property_features_grid.dart';
-import 'package:rent_application/presentation/property/widgets/property_info_card.dart';
-import 'package:rent_application/presentation/property/widgets/property_map_view.dart';
-import 'package:rent_application/presentation/property/widgets/contact_section.dart';
+import 'package:asaan_rent/presentation/property/widgets/property_details_carousel.dart';
+import 'package:asaan_rent/presentation/property/widgets/property_header_card.dart';
+import 'package:asaan_rent/presentation/property/widgets/property_features_grid.dart';
+import 'package:asaan_rent/presentation/property/widgets/property_info_card.dart';
+import 'package:asaan_rent/presentation/property/widgets/property_map_view.dart';
+import 'package:asaan_rent/presentation/property/widgets/contact_section.dart';
 
 // ✅ --- Screens ---
-import 'package:rent_application/presentation/property/screens/full_screen_image_viewer.dart';
+import 'package:asaan_rent/presentation/property/screens/full_screen_image_viewer.dart';
 
 // ✅ --- Error Handling ---
-import 'package:rent_application/core/utils/error_handler.dart';
-import 'package:rent_application/presentation/widgets/error_view.dart';
+import 'package:asaan_rent/core/utils/error_handler.dart';
+import 'package:asaan_rent/presentation/widgets/error_view.dart';
 
 class PropertyDetailsPage extends StatefulWidget {
   final String propertyId; // UUID

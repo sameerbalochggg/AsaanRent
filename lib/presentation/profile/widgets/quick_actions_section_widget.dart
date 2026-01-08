@@ -3,9 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 // ✅ --- Navigation Imports ---
-import 'package:rent_application/presentation/property/screens/my_property_list_screen.dart';
-import 'package:rent_application/presentation/home/screens/favourite_tab_screen.dart';
-import 'package:rent_application/presentation/auth/screens/settings_screen.dart';
+import 'package:asaan_rent/presentation/property/screens/my_property_list_screen.dart';
+import 'package:asaan_rent/presentation/home/screens/favourite_tab_screen.dart';
+import 'package:asaan_rent/presentation/auth/screens/settings_screen.dart';
 
 class QuickActionsSectionWidget extends StatelessWidget {
   const QuickActionsSectionWidget({super.key});
