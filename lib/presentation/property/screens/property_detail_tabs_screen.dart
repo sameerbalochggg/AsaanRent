@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:asaan_rent/data/models/property_model.dart';
 import 'package:asaan_rent/data/repositories/property_repository.dart';
 import 'package:asaan_rent/presentation/property/widgets/edit_property_tab.dart';
-import 'package:asaan_rent/core/theme.dart'; // Import your theme
+import 'package:asaan_rent/core/theme.dart';
+import 'package:asaan_rent/presentation/widgets/success_dialog.dart'; // ✅ Import success dialog
 
 class PropertyDetailTabsScreen extends StatefulWidget {
   final String propertyId; // Receives a String (UUID)
@@ -50,7 +51,6 @@ class _PropertyDetailTabsScreenState extends State<PropertyDetailTabsScreen>
     });
 
     try {
-      // ✅ --- FIX: This is now String -> Property ---
       final property = await _repository.fetchPropertyById(widget.propertyId);
       
       if (mounted) {
@@ -69,13 +69,13 @@ class _PropertyDetailTabsScreenState extends State<PropertyDetailTabsScreen>
     }
   }
 
+  // Toggle rental status with success dialog
   Future<void> _toggleRentalStatus() async {
     if (_currentProperty == null) return;
 
     try {
       final newStatus = !_currentProperty!.isRented;
 
-      // ✅ --- FIX: Pass the 'String' id (UUID) ---
       await _repository.toggleRentalStatus(_currentProperty!.id, newStatus);
 
       if (mounted) {
@@ -87,16 +87,12 @@ class _PropertyDetailTabsScreenState extends State<PropertyDetailTabsScreen>
       widget.onUpdate(_currentProperty!);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              newStatus
-                  ? 'Property marked as RENTED'
-                  : 'Property marked as AVAILABLE',
-            ),
-            backgroundColor: Theme.of(context).primaryColor,
-            behavior: SnackBarBehavior.floating,
-          ),
+        SuccessDialog.show(
+          context: context,
+          message: newStatus
+              ? 'Property marked as rented'
+              : 'Property marked as available',
+          primaryColor: Theme.of(context).primaryColor,
         );
       }
     } catch (e) {
@@ -105,20 +101,38 @@ class _PropertyDetailTabsScreenState extends State<PropertyDetailTabsScreen>
           SnackBar(
             content: Text('Failed to update status: $e'),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
     }
   }
   
+  // ✅ UPDATED: Delete Property with Success Dialog
   Future<void> _onDeleteProperty() async {
-    Navigator.pop(context); // Close the dialog
+    Navigator.pop(context); // 1. Close the "Are you sure?" dialog
+    
     try {
-      // ✅ --- FIX: Pass the String ID ---
+      // 2. Perform delete operation
       await _repository.deleteProperty(_currentProperty!.id);
       widget.onDelete();
+      
       if (mounted) {
-        Navigator.pop(context, true); // Pop the edit screen
+        // 3. Show Success Dialog
+        SuccessDialog.show(
+          context: context,
+          title: "Deleted",
+          message: "Property deleted successfully.",
+          primaryColor: Colors.red, // Red to indicate destructive success
+          autoCloseDuration: const Duration(seconds: 2),
+        );
+
+        // 4. Wait for dialog to display briefly, then pop the screen
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted && Navigator.canPop(context)) {
+            Navigator.pop(context, true); // Pop the edit screen
+          }
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -222,6 +236,7 @@ class _PropertyDetailTabsScreenState extends State<PropertyDetailTabsScreen>
       ),
       body: Column(
         children: [
+          // Mark as Rented/Available Button
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -263,6 +278,8 @@ class _PropertyDetailTabsScreenState extends State<PropertyDetailTabsScreen>
               ),
             ),
           ),
+          
+          // Status Indicator
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -293,6 +310,8 @@ class _PropertyDetailTabsScreenState extends State<PropertyDetailTabsScreen>
               ],
             ),
           ),
+          
+          // Edit Tab Content
           Expanded(
             child: TabBarView(
               controller: _tabController,

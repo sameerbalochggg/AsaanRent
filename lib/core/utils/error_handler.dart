@@ -7,16 +7,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Handles all types of errors: Auth, Database, Network, and Generic errors
 class ErrorHandler {
   /// Returns a user-friendly error message based on the exception type.
-  /// 
-  /// Usage:
-  /// ```dart
-  /// try {
-  ///   await someOperation();
-  /// } catch (e) {
-  ///   String message = ErrorHandler.getMessage(e);
-  ///   print(message);
-  /// }
-  /// ```
   static String getMessage(Object error) {
     debugPrint("🔴 ErrorHandler Caught: $error");
 
@@ -216,32 +206,21 @@ class ErrorHandler {
     return "File upload failed. Please try again.";
   }
 
-  /// ✅ FIXED: Safely checks if context is valid before showing SnackBar
+  /// ✅ Safely checks if context is valid before showing SnackBar
   static bool _isContextValid(BuildContext context) {
     try {
-      // Check if the context is still mounted and the widget tree is stable
       return context.mounted;
     } catch (e) {
       return false;
     }
   }
 
-  /// Shows a standardized error SnackBar
-  /// 
-  /// Usage:
-  /// ```dart
-  /// try {
-  ///   await someOperation();
-  /// } catch (e) {
-  ///   ErrorHandler.showErrorSnackBar(context, e);
-  /// }
-  /// ```
+  /// ✅ UPDATED: Shows error with black background and white text, auto-dismiss in 5 seconds
   static void showErrorSnackBar(
     BuildContext context, 
     Object error, {
-    Duration duration = const Duration(seconds: 4),
+    Duration duration = const Duration(seconds: 5),
   }) {
-    // ✅ Check if context is valid before showing SnackBar
     if (!_isContextValid(context)) {
       debugPrint("⚠️ Context is not valid. Skipping SnackBar.");
       return;
@@ -268,20 +247,15 @@ class ErrorHandler {
               ),
             ],
           ),
-          backgroundColor: Colors.red[700],
+          backgroundColor: Colors.black,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: Colors.white24, width: 1),
           ),
           margin: const EdgeInsets.all(16),
           duration: duration,
-          action: SnackBarAction(
-            label: 'Dismiss',
-            textColor: Colors.white,
-            onPressed: () {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            },
-          ),
+          // ✅ No dismiss button - auto-dismiss only
         ),
       );
     } catch (e) {
@@ -289,18 +263,12 @@ class ErrorHandler {
     }
   }
 
-  /// Shows a success SnackBar (for consistent UI)
-  /// 
-  /// Usage:
-  /// ```dart
-  /// ErrorHandler.showSuccessSnackBar(context, "Login successful!");
-  /// ```
+  /// ✅ UPDATED: Success with black background and white text
   static void showSuccessSnackBar(
     BuildContext context, 
     String message, {
     Duration duration = const Duration(seconds: 3),
   }) {
-    // ✅ Check if context is valid before showing SnackBar
     if (!_isContextValid(context)) {
       debugPrint("⚠️ Context is not valid. Skipping SnackBar.");
       return;
@@ -311,7 +279,7 @@ class ErrorHandler {
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.check_circle_outline, color: Colors.white),
+              const Icon(Icons.check_circle_outline, color: Colors.greenAccent),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -325,10 +293,11 @@ class ErrorHandler {
               ),
             ],
           ),
-          backgroundColor: Colors.green[700],
+          backgroundColor: Colors.black,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: Colors.white24, width: 1),
           ),
           margin: const EdgeInsets.all(16),
           duration: duration,
@@ -339,18 +308,12 @@ class ErrorHandler {
     }
   }
 
-  /// Shows a warning SnackBar
-  /// 
-  /// Usage:
-  /// ```dart
-  /// ErrorHandler.showWarningSnackBar(context, "Please complete your profile");
-  /// ```
+  /// ✅ UPDATED: Warning with black background and white text
   static void showWarningSnackBar(
     BuildContext context, 
     String message, {
     Duration duration = const Duration(seconds: 3),
   }) {
-    // ✅ Check if context is valid before showing SnackBar
     if (!_isContextValid(context)) {
       debugPrint("⚠️ Context is not valid. Skipping SnackBar.");
       return;
@@ -361,7 +324,7 @@ class ErrorHandler {
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.warning_amber_rounded, color: Colors.white),
+              const Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -375,10 +338,11 @@ class ErrorHandler {
               ),
             ],
           ),
-          backgroundColor: Colors.orange[700],
+          backgroundColor: Colors.black,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: Colors.white24, width: 1),
           ),
           margin: const EdgeInsets.all(16),
           duration: duration,
@@ -389,18 +353,12 @@ class ErrorHandler {
     }
   }
 
-  /// Shows an info SnackBar
-  /// 
-  /// Usage:
-  /// ```dart
-  /// ErrorHandler.showInfoSnackBar(context, "New update available");
-  /// ```
+  /// ✅ UPDATED: Info with black background and white text
   static void showInfoSnackBar(
     BuildContext context, 
     String message, {
     Duration duration = const Duration(seconds: 3),
   }) {
-    // ✅ Check if context is valid before showing SnackBar
     if (!_isContextValid(context)) {
       debugPrint("⚠️ Context is not valid. Skipping SnackBar.");
       return;
@@ -411,7 +369,7 @@ class ErrorHandler {
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.info_outline, color: Colors.white),
+              const Icon(Icons.info_outline, color: Colors.blueAccent),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -425,10 +383,11 @@ class ErrorHandler {
               ),
             ],
           ),
-          backgroundColor: Colors.blue[700],
+          backgroundColor: Colors.black,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: Colors.white24, width: 1),
           ),
           margin: const EdgeInsets.all(16),
           duration: duration,

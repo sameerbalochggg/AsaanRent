@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 class ContactFieldsWidget extends StatelessWidget {
   final TextEditingController phoneController;
   final TextEditingController emailController;
@@ -38,7 +39,12 @@ class ContactFieldsWidget extends StatelessWidget {
                 decoration: _cardDecoration(),
                 child: TextFormField(
                   controller: phoneController,
-                  decoration: _inputDecoration("Phone Number", icon: Icons.phone),
+                  // ✅ Added hintText here
+                  decoration: _inputDecoration(
+                    "Phone Number", 
+                    icon: Icons.phone, 
+                    hintText: "e.g 32326535195",
+                  ),
                   keyboardType: TextInputType.phone,
                   validator: (val) => val!.isEmpty ? "Enter phone number" : null,
                 ),
@@ -73,9 +79,12 @@ class ContactFieldsWidget extends StatelessWidget {
     );
   }
 
-  InputDecoration _inputDecoration(String label, {IconData? icon}) {
+  // ✅ Updated to accept optional hintText
+  InputDecoration _inputDecoration(String label, {IconData? icon, String? hintText}) {
     return InputDecoration(
       labelText: label,
+      hintText: hintText, // ✅ Shows the example text inside the field
+      hintStyle: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[400]),
       labelStyle: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
       prefixIcon: icon != null
           ? Icon(icon, color: const Color(0xFF004D40), size: 20)

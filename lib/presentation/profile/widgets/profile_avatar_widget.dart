@@ -94,11 +94,19 @@ class ProfileAvatarWidget extends StatelessWidget {
                 image: imageBytes,
                 controller: cropController,
                 onCropped: (croppedData) async {
-                  Navigator.pop(dialogContext);
+                  // ✅ Store mounted state BEFORE closing dialog
+                  final mounted = dialogContext.mounted;
+                  
+                  // Close dialog first
+                  if (mounted) {
+                    Navigator.pop(dialogContext);
+                  }
+                  
                   // ✅ Handle CropResult properly
                   if (croppedData is CropSuccess) {
-                    await _saveCroppedImage(context, croppedData.croppedImage);
+                    await _saveCroppedImage(croppedData.croppedImage);
                   } else if (croppedData is CropFailure) {
+                    // ✅ Use the ORIGINAL context, not dialogContext
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -152,7 +160,8 @@ class ProfileAvatarWidget extends StatelessWidget {
     );
   }
 
-  Future<void> _saveCroppedImage(BuildContext context, Uint8List croppedData) async {
+  // ✅ Removed context parameter since we don't need it
+  Future<void> _saveCroppedImage(Uint8List croppedData) async {
     try {
       // Save to temporary file
       final tempDir = await getTemporaryDirectory();
@@ -165,14 +174,7 @@ class ProfileAvatarWidget extends StatelessWidget {
       
     } catch (e) {
       debugPrint('❌ Error saving cropped image: $e');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to save cropped image: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      // ✅ No ScaffoldMessenger here - let the caller handle UI feedback
     }
   }
 

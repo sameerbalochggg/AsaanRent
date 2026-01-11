@@ -70,7 +70,7 @@ class AuthRepository {
     try {
       await _supabase.auth.signInWithOtp(
         email: email,
-        emailRedirectTo: "asaanrent://reset-callback/",
+        emailRedirectTo: "asaanrent://reset-callback",
       );
     } catch (e) {
       rethrow;

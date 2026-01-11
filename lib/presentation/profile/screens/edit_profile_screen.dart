@@ -1,14 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:asaan_rent/data/models/user_profile_model.dart';
 import 'package:asaan_rent/data/repositories/profile_repository.dart';
 import 'package:asaan_rent/data/repositories/storage_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Widget imports
-import 'package:asaan_rent/presentation/profile/widgets/edit_profile_avatar_widget.dart';
+import 'package:asaan_rent/presentation/profile/widgets/profile_avatar_widget.dart'; // ✅ Using ProfileAvatarWidget
 import 'package:asaan_rent/presentation/profile/widgets/edit_profile_form_widget.dart';
 import 'package:asaan_rent/presentation/profile/widgets/save_button_widget.dart';
 
@@ -90,33 +89,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  // ✅ UPDATED: Pick image with error handling
-  Future<void> _pickImage() async {
-    try {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-      if (pickedFile != null && mounted) {
-        setState(() {
-          _imageFile = File(pickedFile.path);
-          _profile = _profile.copyWith(avatarUrl: null);
-        });
-      }
-    } catch (error) {
-      // ✅ Handle image picker errors
-      if (mounted) {
-        ErrorHandler.showErrorSnackBar(context, error);
-      }
-    }
-  }
-
-  ImageProvider<Object> _buildAvatarImage() {
-    if (_imageFile != null) {
-      return FileImage(_imageFile!);
-    } else if (_profile.avatarUrl != null && _profile.avatarUrl!.isNotEmpty) {
-      return NetworkImage(_profile.avatarUrl!);
-    } else {
-      return const AssetImage('assets/placeholder_avatar.png');
+  // ✅ Handle image selection from ProfileAvatarWidget
+  void _handleImageSelected(File? file) {
+    if (file != null && mounted) {
+      setState(() {
+        _imageFile = file;
+        _profile = _profile.copyWith(avatarUrl: null);
+      });
     }
   }
 
@@ -201,9 +180,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            EditProfileAvatarWidget(
-              avatarImage: _buildAvatarImage(),
-              onTap: _pickImage,
+            // ✅ Using ProfileAvatarWidget with crop functionality
+            Center(
+              child: ProfileAvatarWidget(
+                profile: _profile,
+                imageFile: _imageFile,
+                onImageSelected: _handleImageSelected,
+              ),
             ),
             const SizedBox(height: 24),
             EditProfileFormWidget(

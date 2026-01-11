@@ -19,6 +19,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   final PropertyRepository _propertyRepo = PropertyRepository();
   
   List<Property> _userProperties = [];
+  String? _userEmail; // ✅ State variable for email
   bool _isLoading = true;
 
   @override
@@ -30,11 +31,27 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   Future<void> _loadUserProperties() async {
     setState(() => _isLoading = true);
     try {
-      // The userId passed in user.userId is the UUID from auth.users which matches owner_id in properties
       final properties = await _propertyRepo.fetchPropertiesByUserId(widget.user.userId);
+      
+      // ✅ LOGIC: Extract email from the first available property
+      String? extractedEmail;
+      if (properties.isNotEmpty) {
+        // Find the first property that has a non-empty email
+        try {
+          final propertyWithEmail = properties.firstWhere(
+            (p) => p.email != null && p.email!.isNotEmpty,
+            orElse: () => properties.first,
+          );
+          extractedEmail = propertyWithEmail.email;
+        } catch (_) {
+          // If list is somehow empty or logic fails
+        }
+      }
+
       if (mounted) {
         setState(() {
           _userProperties = properties;
+          _userEmail = extractedEmail; // ✅ Set the email
           _isLoading = false;
         });
       }
@@ -166,6 +183,18 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                   if (widget.user.profession != null && widget.user.profession!.isNotEmpty)
                     const SizedBox(height: 12),
                   
+                  // ✅ EMAIL DISPLAY (From Property Model)
+                  if (_userEmail != null && _userEmail!.isNotEmpty)
+                    _buildInfoRow(
+                      icon: Icons.email,
+                      label: "Email (From Property)",
+                      value: _userEmail!,
+                      theme: theme,
+                    ),
+
+                  if (_userEmail != null && _userEmail!.isNotEmpty)
+                     const SizedBox(height: 12),
+
                   if (widget.user.phone != null && widget.user.phone!.isNotEmpty)
                     _buildInfoRow(
                       icon: Icons.phone,

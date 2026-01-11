@@ -13,14 +13,34 @@ import 'package:asaan_rent/presentation/property/screens/add_property_screen.dar
 import 'package:asaan_rent/presentation/profile/screens/profile_screen.dart';
 import 'package:asaan_rent/presentation/auth/screens/settings_screen.dart';
 import 'package:asaan_rent/presentation/home/screens/help_and_support_screen.dart';
-import 'package:asaan_rent/presentation/home/screens/favourite_tab_screen.dart'; // ✅ ADDED
+import 'package:asaan_rent/presentation/home/screens/favourite_tab_screen.dart';
 
 // ✅ Provider Import
 import 'package:asaan_rent/presentation/providers/profile_provider.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends StatefulWidget {
   final VoidCallback onPropertyAdded;
   const AppDrawer({super.key, required this.onPropertyAdded});
+
+  @override
+  State<AppDrawer> createState() => _AppDrawerState();
+}
+
+class _AppDrawerState extends State<AppDrawer> {
+  @override
+  void initState() {
+    super.initState();
+    // ✅ Refresh profile data when drawer is opened
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshProfile();
+    });
+  }
+
+  // ✅ Method to refresh profile data
+  void _refreshProfile() {
+    final profileProvider = context.read<ProfileProvider>();
+    profileProvider.loadProfile(); // Fetch latest profile data
+  }
 
   // Helper method for navigation
   void _navigateTo(BuildContext context, Widget screen) {
@@ -120,10 +140,20 @@ class AppDrawer extends StatelessWidget {
             icon: Icons.person_outline,
             title: "My Profile",
             iconColor: iconColor,
-            onTap: () => _navigateTo(context, const ProfileScreen()),
+            onTap: () async {
+              Navigator.pop(context);
+              // ✅ Refresh profile when returning from profile screen
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+              // Refresh if user made changes
+              if (result == true) {
+                _refreshProfile();
+              }
+            },
           ),
 
-          // ✅ UPDATED: Navigate to FavoritesTabScreen
           _DrawerTile(
             icon: Icons.favorite_border,
             title: "My Favorites",
@@ -147,7 +177,7 @@ class AppDrawer extends StatelessWidget {
                   builder: (context) => const MyPropertyListPage(),
                 ),
               );
-              onPropertyAdded();
+              widget.onPropertyAdded();
             },
           ),
 
@@ -164,7 +194,7 @@ class AppDrawer extends StatelessWidget {
                 ),
               );
               if (result == true) {
-                onPropertyAdded();
+                widget.onPropertyAdded();
               }
             },
           ),
@@ -183,9 +213,7 @@ class AppDrawer extends StatelessWidget {
             title: "Help & Support",
             iconColor: iconColor,
             onTap: () {
-              Navigator.pop(context); // Close drawer
-
-              // Navigate to Help & Support screen
+              Navigator.pop(context);
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -247,7 +275,6 @@ class AppDrawer extends StatelessWidget {
 }
 
 // ✅ --- SEPARATED DRAWER HEADER WIDGET ---
-// This prevents the entire drawer from rebuilding when only user data changes
 class _DrawerHeader extends StatelessWidget {
   const _DrawerHeader();
 
@@ -297,7 +324,6 @@ class _DrawerHeader extends StatelessWidget {
 }
 
 // ✅ --- DATA CLASS FOR SELECTOR ---
-// Only rebuild when these specific fields change
 class _ProfileData {
   final String displayName;
   final String email;
@@ -330,7 +356,6 @@ class _ProfileData {
 }
 
 // ✅ --- REUSABLE DRAWER TILE WIDGET ---
-// Prevents rebuilding of individual tiles
 class _DrawerTile extends StatelessWidget {
   final IconData icon;
   final String title;

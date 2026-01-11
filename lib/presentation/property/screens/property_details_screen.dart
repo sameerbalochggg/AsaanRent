@@ -14,6 +14,7 @@ import 'package:asaan_rent/presentation/property/widgets/property_features_grid.
 import 'package:asaan_rent/presentation/property/widgets/property_info_card.dart';
 import 'package:asaan_rent/presentation/property/widgets/property_map_view.dart';
 import 'package:asaan_rent/presentation/property/widgets/contact_section.dart';
+import 'package:asaan_rent/presentation/widgets/success_dialog.dart'; // ✅ Imported SuccessDialog
 
 // ✅ --- Screens ---
 import 'package:asaan_rent/presentation/property/screens/full_screen_image_viewer.dart';
@@ -36,7 +37,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   final ProfileRepository _profileRepo = ProfileRepository();
   
   // Note: CarouselSliderController might vary by package version. 
-  // If your version uses CarouselController, change this type.
   final CarouselSliderController _carouselController = CarouselSliderController();
 
   Property? _property;
@@ -92,7 +92,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
       if (mounted) {
         // ✅ If we have data (refreshing), don't blow up the screen. Show a snackbar instead.
         if (isRefreshing) {
-           ScaffoldMessenger.of(context).showSnackBar(
+            ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text("Failed to refresh: ${ErrorHandler.getMessage(e)}"),
               backgroundColor: Colors.red,
@@ -141,15 +141,15 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
           _isFavoriteLoading = false;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _isFavorite ? 'Added to favorites ❤️' : 'Removed from favorites',
-              style: GoogleFonts.poppins(),
-            ),
-            duration: const Duration(seconds: 2),
-            backgroundColor: _isFavorite ? Colors.green : Colors.grey[700],
-          ),
+        // ✅ REPLACED SNACKBAR WITH SUCCESS DIALOG
+        SuccessDialog.show(
+          context: context,
+          title: newFavoriteState ? 'Favorited!' : 'Removed!',
+          message: newFavoriteState 
+              ? 'Added to your favorites list.' 
+              : 'Removed from your favorites list.',
+          primaryColor: newFavoriteState ? Colors.green : Colors.orange,
+          autoCloseDuration: const Duration(milliseconds: 1500), // Slightly faster
         );
       }
     } catch (e) {
@@ -158,7 +158,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         setState(() {
           _isFavoriteLoading = false;
         });
-        // Use ErrorHandler for snackbar
+        // Use ErrorHandler for snackbar for errors
         ErrorHandler.showErrorSnackBar(context, e);
       }
     }
@@ -200,14 +200,18 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
             onPressed: () async {
               if (reasonController.text.isEmpty) return;
               
-              Navigator.pop(context); // Close dialog
+              Navigator.pop(context); // Close input dialog
               
               try {
                 await _propertyRepo.reportProperty(widget.propertyId, reasonController.text);
                 
                 if (mounted) {
-                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Report submitted. Thank you."), backgroundColor: Colors.green),
+                  // ✅ Using Imported SuccessDialog for Report
+                  SuccessDialog.show(
+                    context: context,
+                    title: "Reported",
+                    message: "Report submitted successfully. Thank you.",
+                    primaryColor: Colors.green,
                   );
                 }
               } catch (e) {
@@ -270,38 +274,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                         Navigator.pop(context);
                         _toggleFavorite();
                       },
-              ),
-              ListTile(
-                leading: const Icon(Icons.bookmark_border, color: Color(0xFF004D40)),
-                title: Text(
-                  'Save Property',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Property saved successfully'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.share_outlined, color: Color(0xFF004D40)),
-                title: Text(
-                  'Share Property',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Share feature coming soon'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                },
               ),
               ListTile(
                 leading: const Icon(Icons.flag_outlined, color: Colors.red),

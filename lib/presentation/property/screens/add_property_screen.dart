@@ -17,8 +17,9 @@ import 'package:asaan_rent/core/utils/image_compressor.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// ✅ --- ERROR HANDLER IMPORT ---
+// ✅ --- IMPORTS ---
 import 'package:asaan_rent/core/utils/error_handler.dart';
+import 'package:asaan_rent/presentation/widgets/success_dialog.dart'; // ✅ Imported SuccessDialog
 
 class AddPropertyScreen extends StatefulWidget {
   const AddPropertyScreen({super.key});
@@ -64,7 +65,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   final List<XFile> _images = [];
   final ImagePicker _picker = ImagePicker();
   bool _isPicking = false;
-  bool _isLoading = false;
+  // bool _isLoading = false; // ❌ Removed Loading State (Requirement)
 
   @override
   void initState() {
@@ -98,7 +99,6 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     }
   }
 
-  // ✅ UPDATED: Pick images with error handling
   Future<void> _pickImages() async {
     if (_isPicking) return;
     _isPicking = true;
@@ -111,7 +111,6 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
         });
       }
     } catch (error) {
-      // ✅ USE ERROR HANDLER for image picker errors
       debugPrint("Error picking images: $error");
       if (mounted) {
         ErrorHandler.showErrorSnackBar(context, error);
@@ -143,12 +142,12 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     }
   }
 
-  // ✅ UPDATED: Submit form with ErrorHandler
-  Future<void> _submitForm() async {
+  // ✅ UPDATED: Validate, Show Success, Run in Background
+  void _submitForm() {
+    // 1. Validate UI Fields
     if (!_formKey.currentState!.validate()) return;
     
     if (_images.isEmpty) {
-      // ✅ Use ErrorHandler's warning SnackBar
       ErrorHandler.showWarningSnackBar(
         context,
         "📷 Please upload at least one image",
@@ -156,73 +155,109 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    // 2. Capture Data for Background Task
+    // We capture values immediately because controllers might be disposed if we pop the screen
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      ErrorHandler.showErrorSnackBar(context, "User not authenticated");
+      return;
+    }
 
-    try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) {
-        throw Exception("User not authenticated. Please login first.");
+    final rawImages = List<XFile>.from(_images); // Copy list
+    final fullPhone = "$_selectedCountryCode${_phoneController.text}";
+    final basicData = {
+      "owner_id": userId,
+      "is_rented": false,
+      "property_type": propertyType,
+      "location": _locationController.text,
+      "price": double.tryParse(_priceController.text) ?? 0,
+      "description": _descriptionController.text.isEmpty ? null : _descriptionController.text,
+      "phone": fullPhone,
+      "email": _emailController.text,
+      "latitude": _latitude,
+      "longitude": _longitude,
+    };
+    
+    // Residential Specific Data
+    Map<String, dynamic> residentialData = {};
+    if (_showResidentialFields) {
+      int? bedroomsInt = int.tryParse(bedrooms ?? '');
+      if (bedrooms == "5+") bedroomsInt = 5;
+      int? bathroomsInt = int.tryParse(bathrooms ?? '');
+      if (bathrooms == "5+") bathroomsInt = 5;
+      
+      residentialData = {
+        "area": _areaController.text,
+        "bedrooms": bedroomsInt,
+        "bathrooms": bathroomsInt,
+        ...facilities,
+      };
+    }
+
+    // 3. Fire Background Task (Do NOT await)
+    // We pass the captured data to a detached function
+    _uploadPropertyInBackground(
+      userId: userId,
+      basicData: basicData,
+      residentialData: residentialData,
+      images: rawImages,
+      repo: _propertyRepo,
+      storage: _storageRepo,
+    );
+
+    // 4. Show Success Dialog Immediately
+    SuccessDialog.show(
+      context: context,
+      title: "Adding Property...",
+      message: "Your property is being uploaded in the background.",
+      primaryColor: Colors.green,
+      autoCloseDuration: const Duration(seconds: 3),
+    );
+
+    // 5. Navigate Home (Pop) after a short delay to let user see the dialog
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context, true); // Return true to indicate success
       }
+    });
+  }
 
-      // Upload images with compression
+  // ✅ Detached Background Task
+  // This function is static or independent so it doesn't rely on the Widget's state
+  Future<void> _uploadPropertyInBackground({
+    required String userId,
+    required Map<String, dynamic> basicData,
+    required Map<String, dynamic> residentialData,
+    required List<XFile> images,
+    required PropertyRepository repo,
+    required StorageRepository storage,
+  }) async {
+    try {
+      debugPrint("🚀 Background Upload Started...");
+
+      // A. Upload Images
       final imageUrls = await Future.wait(
-        _images.map((img) async {
+        images.map((img) async {
           final compressedFile = await ImageCompressor.compressImage(img);
-          return _storageRepo.uploadFile(compressedFile, 'property-images');
+          return storage.uploadFile(compressedFile, 'property-images');
         }),
       );
 
-      final fullPhone = "$_selectedCountryCode${_phoneController.text}";
-
-      final Map<String, dynamic> propertyData = {
-        "owner_id": userId,
-        "is_rented": false,
-        "property_type": propertyType,
-        "location": _locationController.text,
-        "price": double.tryParse(_priceController.text) ?? 0,
-        "description": _descriptionController.text.isEmpty
-            ? null
-            : _descriptionController.text,
-        "phone": fullPhone,
-        "email": _emailController.text,
+      // B. Merge Data
+      final finalData = {
+        ...basicData,
+        ...residentialData,
         "images": imageUrls,
-        "latitude": _latitude,
-        "longitude": _longitude,
       };
 
-      if (_showResidentialFields) {
-        int? bedroomsInt = int.tryParse(bedrooms ?? '');
-        if (bedrooms == "5+") bedroomsInt = 5;
-        int? bathroomsInt = int.tryParse(bathrooms ?? '');
-        if (bathrooms == "5+") bathroomsInt = 5;
-
-        propertyData.addAll({
-          "area": _areaController.text,
-          "bedrooms": bedroomsInt,
-          "bathrooms": bathroomsInt,
-          ...facilities,
-        });
-      }
-
-      await _propertyRepo.addProperty(propertyData);
-
-      if (!mounted) return;
+      // C. Save to Database
+      await repo.addProperty(finalData);
       
-      // ✅ Use ErrorHandler's success SnackBar
-      ErrorHandler.showSuccessSnackBar(
-        context,
-        "✅ Property added successfully!",
-      );
-      
-      Navigator.pop(context, true);
-    } catch (error) {
-      // ✅ USE ERROR HANDLER for consistent error display
-      ErrorHandler.logError(error); // Log for debugging
-      
-      if (!mounted) return;
-      ErrorHandler.showErrorSnackBar(context, error);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      debugPrint("✅ Background Upload Complete!");
+    } catch (e) {
+      // Since UI is gone, we can only log the error
+      debugPrint("❌ Background Upload Failed: $e");
+      ErrorHandler.logError(e);
     }
   }
 
@@ -406,7 +441,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                 ),
                 const SizedBox(height: 12),
                 
-                // ✅ NEW: Image Guidelines Box
+                // ✅ Image Guidelines Box
                 _buildImageGuidelines(),
                 
                 const SizedBox(height: 16),
@@ -417,7 +452,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                 ),
                 const SizedBox(height: 32),
                 SubmitButtonWidget(
-                  isLoading: _isLoading,
+                  isLoading: false, // ✅ Always false (no spinner)
                   onPressed: _submitForm,
                 ),
               ],
