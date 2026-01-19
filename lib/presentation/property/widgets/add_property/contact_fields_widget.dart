@@ -43,7 +43,7 @@ class ContactFieldsWidget extends StatelessWidget {
                   decoration: _inputDecoration(
                     "Phone Number", 
                     icon: Icons.phone, 
-                    hintText: "e.g 32326535195",
+                    hintText: "e.g 3232635195",
                   ),
                   keyboardType: TextInputType.phone,
                   validator: (val) => val!.isEmpty ? "Enter phone number" : null,

@@ -1,10 +1,16 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+// ✅ PROJECT IMPORTS
 import 'package:asaan_rent/core/images.dart';
 import 'package:asaan_rent/presentation/auth/screens/login.dart';
-import 'package:asaan_rent/presentation/home/screens/home_screen.dart'; // ✅ Import your HomePage
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:asaan_rent/presentation/home/screens/home_screen.dart';
+import 'package:asaan_rent/presentation/admin/screens/admin_dashboard_screen.dart'; // ⚠️ Check this path
+
+// ✅ REPOSITORY IMPORT
+import 'package:asaan_rent/data/repositories/profile_repository.dart'; // ⚠️ Check this path
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -22,6 +28,9 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _logoTextController;
   late Animation<Offset> _logoSlideAnimation;
   late Animation<Offset> _textSlideAnimation;
+
+  // ✅ Instantiate Repository
+  final ProfileRepository _profileRepository = ProfileRepository();
 
   @override
   void initState() {
@@ -69,22 +78,54 @@ class _SplashScreenState extends State<SplashScreen>
     });
   }
 
-  /// ✅ Supabase session check
+  /// ✅ Updated: Uses ProfileRepository for Role Check
   Future<void> _checkAuth() async {
     final session = Supabase.instance.client.auth.currentSession;
 
     if (session != null) {
-      // User already logged in → Go to Home
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+      try {
+        // 🔄 Fetch profile using Repository
+        final userProfile = await _profileRepository.getProfile();
+        
+        // Default to 'user' if profile or role is null
+        // ⚠️ Ensure your UserProfile model has a 'role' string field
+        final String role = userProfile?.role ?? 'user';
+
+        if (mounted) {
+          if (role == 'admin') {
+            debugPrint("🛡️ Admin Detected: Redirecting to Dashboard");
+            // 🛑 REDIRECT TO ADMIN DASHBOARD
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+            );
+          } else {
+            debugPrint("👤 User Detected: Redirecting to Home");
+            // 🟢 REDIRECT TO USER HOME
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const HomePage()),
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint("❌ Error in Splash Auth Check: $e");
+        // Fallback to Home if something fails but session exists
+        if (mounted) {
+           Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomePage()),
+          );
+        }
+      }
     } else {
       // No session → Go to Login
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-      );
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+        );
+      }
     }
   }
 
@@ -122,7 +163,7 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
 
-            // 🏡 Logo + "AsaanRent" (closer together)
+            // 🏡 Logo + "AsaanRent"
             Positioned(
               top: 100,
               left: 0,
@@ -168,7 +209,7 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
 
-            // 🔤 Tagline + 🏡 House Image centered in middle
+            // 🔤 Tagline + 🏡 House Image
             Align(
               alignment: Alignment.center,
               child: Column(

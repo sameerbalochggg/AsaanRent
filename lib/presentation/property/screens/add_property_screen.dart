@@ -16,10 +16,11 @@ import 'package:asaan_rent/presentation/property/widgets/add_property/submit_but
 import 'package:asaan_rent/core/utils/image_compressor.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-// ✅ --- IMPORTS ---
 import 'package:asaan_rent/core/utils/error_handler.dart';
-import 'package:asaan_rent/presentation/widgets/success_dialog.dart'; // ✅ Imported SuccessDialog
+import 'package:asaan_rent/presentation/widgets/success_dialog.dart';
+
+// ✅ Import your Home Screen
+import 'package:asaan_rent/presentation/home/screens/home_screen.dart'; 
 
 class AddPropertyScreen extends StatefulWidget {
   const AddPropertyScreen({super.key});
@@ -64,8 +65,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
 
   final List<XFile> _images = [];
   final ImagePicker _picker = ImagePicker();
+  
   bool _isPicking = false;
-  // bool _isLoading = false; // ❌ Removed Loading State (Requirement)
+  bool _isLoading = false; 
 
   @override
   void initState() {
@@ -142,9 +144,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     }
   }
 
-  // ✅ UPDATED: Validate, Show Success, Run in Background
   void _submitForm() {
-    // 1. Validate UI Fields
+    // 1. Validate UI Fields (This triggers validators on ALL FormFields, including our custom Map one)
     if (!_formKey.currentState!.validate()) return;
     
     if (_images.isEmpty) {
@@ -155,16 +156,16 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       return;
     }
 
-    // 2. Capture Data for Background Task
-    // We capture values immediately because controllers might be disposed if we pop the screen
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) {
       ErrorHandler.showErrorSnackBar(context, "User not authenticated");
       return;
     }
 
-    final rawImages = List<XFile>.from(_images); // Copy list
+    // 2. Prepare Data
+    final rawImages = List<XFile>.from(_images);
     final fullPhone = "$_selectedCountryCode${_phoneController.text}";
+    
     final basicData = {
       "owner_id": userId,
       "is_rented": false,
@@ -178,7 +179,6 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       "longitude": _longitude,
     };
     
-    // Residential Specific Data
     Map<String, dynamic> residentialData = {};
     if (_showResidentialFields) {
       int? bedroomsInt = int.tryParse(bedrooms ?? '');
@@ -194,74 +194,65 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       };
     }
 
-    // 3. Fire Background Task (Do NOT await)
-    // We pass the captured data to a detached function
-    _uploadPropertyInBackground(
-      userId: userId,
+    // 3. Fire Background Task
+    _performUpload(
       basicData: basicData,
       residentialData: residentialData,
       images: rawImages,
-      repo: _propertyRepo,
-      storage: _storageRepo,
     );
 
     // 4. Show Success Dialog Immediately
     SuccessDialog.show(
       context: context,
-      title: "Adding Property...",
-      message: "Your property is being uploaded in the background.",
+      title: "Success!",
+      message: "Property is uploading in background.",
       primaryColor: Colors.green,
-      autoCloseDuration: const Duration(seconds: 3),
+      autoCloseDuration: const Duration(seconds: 2),
     );
 
-    // 5. Navigate Home (Pop) after a short delay to let user see the dialog
+    // 5. Navigate to Home Screen
     Future.delayed(const Duration(seconds: 2), () {
-      if (mounted && Navigator.canPop(context)) {
-        Navigator.pop(context, true); // Return true to indicate success
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()), 
+          (route) => false,
+        );
       }
     });
   }
 
-  // ✅ Detached Background Task
-  // This function is static or independent so it doesn't rely on the Widget's state
-  Future<void> _uploadPropertyInBackground({
-    required String userId,
+  // Independent Upload Logic
+  Future<void> _performUpload({
     required Map<String, dynamic> basicData,
     required Map<String, dynamic> residentialData,
     required List<XFile> images,
-    required PropertyRepository repo,
-    required StorageRepository storage,
   }) async {
     try {
       debugPrint("🚀 Background Upload Started...");
-
-      // A. Upload Images
+      
       final imageUrls = await Future.wait(
         images.map((img) async {
           final compressedFile = await ImageCompressor.compressImage(img);
-          return storage.uploadFile(compressedFile, 'property-images');
+          return _storageRepo.uploadFile(compressedFile, 'property-images');
         }),
       );
 
-      // B. Merge Data
       final finalData = {
         ...basicData,
         ...residentialData,
         "images": imageUrls,
       };
 
-      // C. Save to Database
-      await repo.addProperty(finalData);
+      await _propertyRepo.addProperty(finalData);
       
-      debugPrint("✅ Background Upload Complete!");
+      debugPrint("✅ Background Upload Finished Successfully!");
     } catch (e) {
-      // Since UI is gone, we can only log the error
       debugPrint("❌ Background Upload Failed: $e");
-      ErrorHandler.logError(e);
     }
   }
 
-  // ✅ NEW: Image Upload Guidelines Widget
+  // ... (Existing Guidelines Widgets) ...
   Widget _buildImageGuidelines() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -379,12 +370,48 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                 const SizedBox(height: 12),
                 LocationFieldsWidget(controller: _locationController),
                 const SizedBox(height: 12),
-                MapSelectorWidget(
-                  latitude: _latitude,
-                  longitude: _longitude,
-                  selectedLocationName: _selectedLocationName,
-                  onTap: _pickLocationFromMap,
+
+                // ✅ WRAPPED MAP SELECTOR IN FormField FOR VALIDATION
+                FormField<bool>(
+                  validator: (value) {
+                    // Check if latitude or longitude is null
+                    if (_latitude == null || _longitude == null) {
+                      return "Please select a location on the map";
+                    }
+                    return null;
+                  },
+                  builder: (FormFieldState<bool> state) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        MapSelectorWidget(
+                          latitude: _latitude,
+                          longitude: _longitude,
+                          selectedLocationName: _selectedLocationName,
+                          onTap: () async {
+                            await _pickLocationFromMap();
+                            // Tell the FormField that the state has changed so it can re-validate
+                            state.didChange(_latitude != null);
+                          },
+                        ),
+                        // ✅ Display Error Message if Validation Fails
+                        if (state.hasError)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8, left: 12),
+                            child: Text(
+                              state.errorText!,
+                              style: TextStyle(
+                                color: Colors.red[700],
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
+
                 const SizedBox(height: 24),
                 const SectionHeaderWidget(
                   title: "Pricing",
@@ -441,7 +468,6 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                 ),
                 const SizedBox(height: 12),
                 
-                // ✅ Image Guidelines Box
                 _buildImageGuidelines(),
                 
                 const SizedBox(height: 16),
@@ -452,8 +478,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                 ),
                 const SizedBox(height: 32),
                 SubmitButtonWidget(
-                  isLoading: false, // ✅ Always false (no spinner)
-                  onPressed: _submitForm,
+                  isLoading: _isLoading, 
+                  onPressed: _submitForm, 
                 ),
               ],
             ),
